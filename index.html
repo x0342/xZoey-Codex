@@ -1,0 +1,3095 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Codex 互动讲解：从 AI 大模型到工程 Agent</title>
+  <meta name="description" content="面向零 AI 经验听众的 Codex 互动讲解单页，包含模型分类、Agent、Codex 工作流、安全边界、视频演示和上手路线。">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #020409;
+      --bg-2: #05080f;
+      --panel: rgba(7, 10, 16, 0.82);
+      --panel-2: rgba(255, 255, 255, 0.07);
+      --panel-3: rgba(255, 255, 255, 0.11);
+      --text: #f6f8fa;
+      --muted: #a7b0bd;
+      --faint: #788391;
+      --line: rgba(255, 255, 255, 0.12);
+      --line-strong: rgba(255, 255, 255, 0.22);
+      --accent: #2f81f7;
+      --accent-2: #8bd3ff;
+      --blue: #58a6ff;
+      --green: #3fb950;
+      --red: #ff7b72;
+      --shadow: 0 28px 90px rgba(0, 0, 0, 0.34);
+      --glass: inset 0 1px 0 rgba(255,255,255,.22), inset 0 -1px 0 rgba(255,255,255,.08), 0 22px 70px rgba(0,0,0,.32);
+      --radius: 14px;
+      --max: 1180px;
+      --nav-h: 68px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--bg);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100%;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.65;
+      background:
+        radial-gradient(circle at 12% 6%, rgba(47,129,247,.2), transparent 28%),
+        radial-gradient(circle at 84% 4%, rgba(56,189,248,.12), transparent 30%),
+        radial-gradient(circle at 54% 54%, rgba(88,166,255,.08), transparent 38%),
+        radial-gradient(circle at 18% 86%, rgba(31,111,235,.12), transparent 30%),
+        linear-gradient(180deg, #010309 0%, #05080f 40%, #010309 100%);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,.85), rgba(0,0,0,.22) 72%, transparent);
+      animation: grid-drift 22s linear infinite;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(88,166,255,.12), transparent 1px),
+        repeating-linear-gradient(115deg, transparent 0 86px, rgba(88,166,255,.07) 87px, transparent 89px),
+        repeating-linear-gradient(65deg, transparent 0 148px, rgba(139,211,255,.055) 149px, transparent 151px);
+      background-size: 160px 160px, 100% 100%, 100% 100%;
+      mix-blend-mode: screen;
+      opacity: .46;
+      mask-image: radial-gradient(circle at 50% 48%, #000, transparent 74%);
+      animation: mesh-shift 18s ease-in-out infinite alternate;
+    }
+
+    .neural-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      mix-blend-mode: screen;
+      opacity: .72;
+    }
+
+    .cursor-halo {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      z-index: 2;
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      pointer-events: none;
+      background:
+        radial-gradient(circle, rgba(139,211,255,.2), rgba(47,129,247,.09) 32%, transparent 66%);
+      mix-blend-mode: screen;
+      opacity: 0;
+      transform: translate3d(-50%, -50%, 0);
+      transition: opacity .28s ease;
+    }
+
+    ::selection {
+      color: #fff;
+      background: var(--accent);
+    }
+
+    a {
+      color: inherit;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .page-progress {
+      position: fixed;
+      inset: 0 0 auto;
+      z-index: 100;
+      height: 3px;
+      background: rgba(255,255,255,.08);
+    }
+
+    .page-progress__bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #8bd3ff);
+      box-shadow: 0 0 24px rgba(47,129,247,.55);
+    }
+
+    .ambient {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .ambient::before,
+    .ambient::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+      opacity: .28;
+    }
+
+    .ambient::before {
+      right: -12vw;
+      top: 5vh;
+      width: 46vw;
+      height: 46vw;
+      border: 1px solid rgba(88,166,255,.18);
+      border-radius: 50%;
+      background:
+        repeating-conic-gradient(from 0deg, rgba(88,166,255,.22) 0 2deg, transparent 2deg 12deg),
+        radial-gradient(circle, transparent 52%, rgba(47,129,247,.12) 53%, transparent 58%);
+      mask-image: radial-gradient(circle, transparent 32%, #000 34%, #000 64%, transparent 66%);
+      animation: orbit 42s linear infinite;
+    }
+
+    .ambient::after {
+      left: 6vw;
+      bottom: 7vh;
+      width: 34vw;
+      height: 18vw;
+      border: 1px solid rgba(139,211,255,.16);
+      background:
+        linear-gradient(90deg, rgba(88,166,255,.22) 1px, transparent 1px),
+        linear-gradient(rgba(88,166,255,.16) 1px, transparent 1px);
+      background-size: 28px 28px;
+      transform: skewX(-18deg);
+      filter: blur(.2px);
+    }
+
+    .node-field,
+    .matrix-rain,
+    .data-beam,
+    .holo-ribbon,
+    .depth-grid,
+    .spectral-core {
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .node-field {
+      inset: 0;
+      opacity: .26;
+      background:
+        radial-gradient(circle, rgba(139,211,255,.85) 0 1px, transparent 2px),
+        radial-gradient(circle, rgba(47,129,247,.7) 0 1px, transparent 2px);
+      background-position: 0 0, 78px 62px;
+      background-size: 176px 132px, 214px 166px;
+      mask-image: linear-gradient(120deg, transparent 5%, #000 30%, #000 70%, transparent 95%);
+      animation: node-float 16s ease-in-out infinite alternate;
+    }
+
+    .matrix-rain {
+      right: 5vw;
+      top: 12vh;
+      width: 32vw;
+      height: 76vh;
+      opacity: .18;
+      background:
+        repeating-linear-gradient(180deg, rgba(139,211,255,.62) 0 1px, transparent 1px 18px),
+        repeating-linear-gradient(90deg, transparent 0 24px, rgba(47,129,247,.32) 25px, transparent 26px);
+      filter: blur(.2px);
+      mask-image: linear-gradient(90deg, transparent, #000 26%, #000 72%, transparent);
+      animation: rain-shift 9s linear infinite;
+    }
+
+    .data-beam {
+      left: -22vw;
+      width: 144vw;
+      height: 78px;
+      border-top: 1px solid rgba(139,211,255,.22);
+      border-bottom: 1px solid rgba(47,129,247,.15);
+      background:
+        linear-gradient(90deg, transparent, rgba(47,129,247,.08), rgba(139,211,255,.22), rgba(47,129,247,.08), transparent),
+        repeating-linear-gradient(90deg, transparent 0 54px, rgba(139,211,255,.18) 55px, transparent 57px);
+      opacity: .24;
+      transform: rotate(-11deg);
+      animation: data-beam 14s ease-in-out infinite alternate;
+    }
+
+    .data-beam.alt {
+      top: 62vh;
+      opacity: .16;
+      animation-delay: -6s;
+      transform: rotate(-13deg);
+    }
+
+    .holo-ribbon {
+      left: -8vw;
+      top: 5vh;
+      width: 118vw;
+      height: 240px;
+      opacity: .24;
+      background:
+        linear-gradient(100deg, transparent 0 12%, rgba(88,166,255,.12) 28%, rgba(139,211,255,.26) 42%, rgba(47,129,247,.1) 58%, transparent 76%),
+        repeating-linear-gradient(90deg, transparent 0 38px, rgba(139,211,255,.18) 39px, transparent 41px);
+      clip-path: polygon(0 30%, 100% 0, 100% 38%, 0 72%);
+      filter: blur(.2px);
+      animation: ribbon-slide 18s ease-in-out infinite alternate;
+    }
+
+    .depth-grid {
+      left: 50%;
+      bottom: -26vh;
+      width: 86vw;
+      height: 52vh;
+      border: 1px solid rgba(88,166,255,.13);
+      background:
+        linear-gradient(90deg, rgba(88,166,255,.18) 1px, transparent 1px),
+        linear-gradient(rgba(88,166,255,.14) 1px, transparent 1px);
+      background-size: 38px 38px;
+      transform: translateX(-50%) perspective(560px) rotateX(64deg);
+      transform-origin: center bottom;
+      opacity: .32;
+      animation: floor-drift 12s linear infinite;
+    }
+
+    .spectral-core {
+      right: 7vw;
+      top: 16vh;
+      width: 34vw;
+      height: 34vw;
+      min-width: 360px;
+      min-height: 360px;
+      border-radius: 50%;
+      opacity: .32;
+      background:
+        repeating-conic-gradient(from 30deg, rgba(139,211,255,.34) 0 1deg, transparent 1deg 9deg),
+        radial-gradient(circle, transparent 38%, rgba(47,129,247,.14) 39%, transparent 62%);
+      mask-image: radial-gradient(circle, transparent 28%, #000 31%, #000 66%, transparent 69%);
+      animation: orbit 24s linear infinite reverse;
+    }
+
+    .scanline {
+      position: absolute;
+      left: -20vw;
+      width: 140vw;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.2), rgba(56,189,248,.62), transparent);
+      opacity: .42;
+      transform: rotate(-11deg);
+      animation: scan-drift 11s ease-in-out infinite alternate;
+    }
+
+    .scanline:nth-child(1) { top: 18vh; }
+    .scanline:nth-child(2) { top: 49vh; animation-delay: -5s; opacity: .28; }
+    .scanline:nth-child(3) { top: 80vh; animation-delay: -8s; opacity: .2; }
+
+    @keyframes grid-drift {
+      to { background-position: 42px 42px, 42px 42px; }
+    }
+
+    @keyframes mesh-shift {
+      from { transform: translate3d(-1.5vw, -1vh, 0) scale(1); opacity: .36; }
+      to { transform: translate3d(1.5vw, 1vh, 0) scale(1.04); opacity: .56; }
+    }
+
+    @keyframes node-float {
+      from { transform: translate3d(-18px, -10px, 0); }
+      to { transform: translate3d(22px, 14px, 0); }
+    }
+
+    @keyframes rain-shift {
+      to { background-position: 0 72px, 48px 0; }
+    }
+
+    @keyframes data-beam {
+      from { translate: -4vw -18px; filter: brightness(.9); }
+      to { translate: 5vw 22px; filter: brightness(1.28); }
+    }
+
+    @keyframes ribbon-slide {
+      from { transform: translate3d(-3vw, -16px, 0) skewY(-4deg); }
+      to { transform: translate3d(4vw, 22px, 0) skewY(-4deg); }
+    }
+
+    @keyframes floor-drift {
+      to { background-position: 38px 38px, 38px 38px; }
+    }
+
+    @keyframes scan-drift {
+      from { translate: -3vw -16px; }
+      to { translate: 4vw 22px; }
+    }
+
+    .nav {
+      position: fixed;
+      top: 14px;
+      left: 50%;
+      z-index: 90;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      width: min(calc(100% - 28px), 1160px);
+      min-height: 54px;
+      padding: 8px 10px 8px 12px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: var(--radius);
+      background: rgba(3, 7, 14, .86);
+      box-shadow: var(--glass);
+      backdrop-filter: blur(22px) saturate(140%);
+      transform: translateX(-50%);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 210px;
+      text-decoration: none;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      color: #fff;
+      background:
+        radial-gradient(circle at 30% 20%, rgba(255,255,255,.55), transparent 30%),
+        linear-gradient(135deg, #58a6ff, #1f6feb);
+      box-shadow: 0 12px 38px rgba(47,129,247,.42);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .nav-links a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 36px;
+      padding: 0 10px;
+      border-radius: 10px;
+      color: #d8dee9;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .nav-links a.is-active {
+      color: #fff;
+      background: rgba(47,129,247,.22);
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+    }
+
+    section {
+      position: relative;
+      padding: 116px 24px;
+    }
+
+    .section-inner {
+      width: min(100%, var(--max));
+      margin: 0 auto;
+    }
+
+    .hero {
+      min-height: 100dvh;
+      display: grid;
+      align-items: center;
+      padding-top: 106px;
+      overflow: hidden;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, .92fr) minmax(460px, 1.08fr);
+      gap: 44px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0 0 16px;
+      color: var(--accent-2);
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 6px rgba(47,129,247,.16), 0 0 36px rgba(56,189,248,.55);
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      max-width: 860px;
+      margin-bottom: 22px;
+      font-size: clamp(46px, 6.1vw, 76px);
+      line-height: 1.02;
+      letter-spacing: 0;
+      text-wrap: balance;
+    }
+
+    h2 {
+      max-width: 900px;
+      margin-bottom: 18px;
+      font-size: clamp(34px, 4.6vw, 58px);
+      line-height: 1.08;
+      letter-spacing: 0;
+      text-wrap: balance;
+    }
+
+    h3 {
+      margin-bottom: 10px;
+      font-size: 22px;
+      line-height: 1.22;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      max-width: 760px;
+      margin-bottom: 28px;
+      color: var(--muted);
+      font-size: clamp(17px, 1.8vw, 21px);
+      line-height: 1.78;
+    }
+
+    .hero .lead {
+      max-width: 680px;
+    }
+
+    .accent-text {
+      color: var(--accent-2);
+    }
+
+    .hero-actions,
+    .inline-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 46px;
+      padding: 0 16px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 12px;
+      color: #fff;
+      background: rgba(255,255,255,.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+      text-decoration: none;
+      font-weight: 800;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,.28);
+      background: rgba(255,255,255,.12);
+    }
+
+    .button.primary {
+      border-color: rgba(88,166,255,.58);
+      background: linear-gradient(180deg, #2f81f7, #1f6feb);
+      box-shadow: 0 20px 45px rgba(47,129,247,.34), inset 0 1px 0 rgba(255,255,255,.26);
+    }
+
+    .tag-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 28px;
+      padding: 0 10px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 999px;
+      color: #e6edf3;
+      background: rgba(255,255,255,.07);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .icon {
+      width: 18px;
+      height: 18px;
+      flex: none;
+      stroke-width: 2.1;
+    }
+
+    .glass,
+    .glass-card {
+      position: relative;
+      min-width: 0;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.12), rgba(255,255,255,.045)),
+        rgba(7, 10, 16, .8);
+      box-shadow: var(--glass);
+      backdrop-filter: blur(22px) saturate(145%);
+      overflow: hidden;
+      --mx: 50%;
+      --my: 50%;
+    }
+
+    .glass::before,
+    .glass-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at var(--mx) var(--my), rgba(255,255,255,.20), transparent 30%),
+        linear-gradient(135deg, rgba(255,255,255,.18), transparent 42%);
+      opacity: 0;
+      transition: opacity .22s ease;
+    }
+
+    .glass:hover::before,
+    .glass-card:hover::before {
+      opacity: 1;
+    }
+
+    .hero-stage {
+      min-height: 620px;
+      padding: 18px;
+      overflow: visible;
+      perspective: 1000px;
+    }
+
+    .stage-shell {
+      position: relative;
+      height: 100%;
+      min-height: 580px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.12);
+      background:
+        radial-gradient(circle at 70% 18%, rgba(47,129,247,.24), transparent 32%),
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      overflow: hidden;
+    }
+
+    .stage-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 50px;
+      padding: 0 16px;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 760;
+    }
+
+    .traffic {
+      display: flex;
+      gap: 7px;
+    }
+
+    .traffic span {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: #f85149;
+    }
+
+    .traffic span:nth-child(2) { background: #d29922; }
+    .traffic span:nth-child(3) { background: #3fb950; }
+
+    .command-orbit {
+      position: absolute;
+      right: 26px;
+      top: 88px;
+      width: 170px;
+      height: 170px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 50%;
+      animation: orbit 18s linear infinite;
+      opacity: .9;
+    }
+
+    .command-orbit::before,
+    .command-orbit::after {
+      content: "";
+      position: absolute;
+      inset: 28px;
+      border: 1px dashed rgba(255,255,255,.16);
+      border-radius: inherit;
+    }
+
+    .command-orbit::after {
+      inset: 66px;
+      border-style: solid;
+      background: radial-gradient(circle, rgba(56,189,248,.62), transparent 60%);
+      filter: blur(2px);
+    }
+
+    @keyframes orbit {
+      to { rotate: 360deg; }
+    }
+
+    .workspace-demo {
+      position: relative;
+      display: grid;
+      grid-template-columns: .78fr 1.12fr;
+      gap: 14px;
+      padding: 16px;
+      min-height: 530px;
+      z-index: 1;
+    }
+
+    .chat-stack,
+    .repo-panel,
+    .terminal-mini,
+    .diff-mini {
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 13px;
+      background: rgba(4, 8, 14, .58);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+    }
+
+    .chat-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 14px;
+    }
+
+    .bubble {
+      max-width: 94%;
+      padding: 12px 13px;
+      border-radius: 13px;
+      font-size: 14px;
+      line-height: 1.55;
+      color: #dbe6f2;
+      background: rgba(255,255,255,.08);
+    }
+
+    .bubble.user {
+      align-self: flex-end;
+      color: #fff;
+      background: #1f6feb;
+    }
+
+    .bubble.code {
+      align-self: stretch;
+      color: #c9d1d9;
+      background: #0d1117;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 12px;
+    }
+
+    .repo-panel {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .repo-tabs {
+      display: flex;
+      gap: 8px;
+      padding: 10px;
+      border-bottom: 1px solid rgba(255,255,255,.09);
+    }
+
+    .repo-tabs span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 30px;
+      padding: 0 10px;
+      border-radius: 10px;
+      color: #dbe6f2;
+      background: rgba(255,255,255,.08);
+      font-size: 12px;
+      font-weight: 760;
+    }
+
+    .repo-body {
+      display: grid;
+      grid-template-columns: 132px 1fr;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .file-tree {
+      padding: 14px 10px;
+      border-right: 1px solid rgba(255,255,255,.08);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .file-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 28px;
+      padding: 0 7px;
+      border-radius: 8px;
+      white-space: nowrap;
+    }
+
+    .file-row.active {
+      color: #fff;
+      background: rgba(47,129,247,.22);
+    }
+
+    .code-pane {
+      min-width: 0;
+      padding: 14px;
+      color: #d2e4ff;
+      background: #0d1117;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.85;
+      overflow: hidden;
+    }
+
+    .code-pane span {
+      display: block;
+      white-space: nowrap;
+    }
+
+    .tag { color: #7ee787; }
+    .attr { color: #79c0ff; }
+    .txt { color: #a5d6ff; }
+
+    .repo-footer {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 10px;
+      border-top: 1px solid rgba(255,255,255,.09);
+    }
+
+    .terminal-mini,
+    .diff-mini {
+      min-height: 78px;
+      padding: 10px;
+      color: #dbe6f2;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      background: #0d1117;
+    }
+
+    .plus { color: var(--green); }
+    .minus { color: var(--red); }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .stat {
+      padding: 13px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 14px;
+      background: rgba(255,255,255,.06);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 22px;
+      line-height: 1.1;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: minmax(0, .86fr) minmax(430px, 1.14fr);
+      gap: 40px;
+      align-items: center;
+    }
+
+    .section-dark {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.015)),
+        radial-gradient(circle at 80% 20%, rgba(47,129,247,.16), transparent 28%);
+    }
+
+    .lesson-list {
+      display: grid;
+      gap: 12px;
+      margin: 24px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .lesson-list li {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 12px;
+      align-items: start;
+      color: #dbe6f2;
+    }
+
+    .lesson-list span {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 11px;
+      color: #fff;
+      background: rgba(47,129,247,.18);
+      border: 1px solid rgba(88,166,255,.34);
+      font-weight: 900;
+    }
+
+    .model-board {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .model-card,
+    .surface-card,
+    .extension-card,
+    .script-card {
+      padding: 18px;
+    }
+
+    .model-card {
+      min-height: 170px;
+    }
+
+    .model-card p,
+    .surface-card p,
+    .extension-card p,
+    .script-card p,
+    .workflow-card p {
+      color: var(--muted);
+      margin-bottom: 0;
+    }
+
+    .icon-wrap {
+      display: inline-grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      margin-bottom: 14px;
+      border-radius: 12px;
+      color: #fff;
+      background: rgba(47,129,247,.18);
+      border: 1px solid rgba(88,166,255,.34);
+    }
+
+    .bridge {
+      display: grid;
+      gap: 14px;
+    }
+
+    .bridge-row {
+      display: grid;
+      grid-template-columns: 132px 1fr;
+      gap: 14px;
+      align-items: stretch;
+      padding: 14px;
+    }
+
+    .bridge-label {
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: rgba(255,255,255,.08);
+      color: #fff;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .bridge-row strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .codex-console {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 620px;
+      margin-top: 28px;
+      overflow: hidden;
+    }
+
+    .console-sidebar {
+      padding: 16px;
+      border-right: 1px solid rgba(255,255,255,.1);
+      background: rgba(5,8,13,.76);
+    }
+
+    .side-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      min-height: 42px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 12px;
+      color: var(--muted);
+      background: transparent;
+      font-weight: 760;
+      text-align: left;
+      cursor: pointer;
+      transition: color .18s ease, background .18s ease, transform .18s ease;
+    }
+
+    .side-item:hover,
+    .side-item:focus-visible {
+      color: #fff;
+      background: rgba(88,166,255,.1);
+      outline: none;
+    }
+
+    .side-item:active {
+      transform: translateY(1px);
+    }
+
+    .side-item.active,
+    .side-item.is-active {
+      color: #fff;
+      background: rgba(47,129,247,.2);
+    }
+
+    .console-main {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-width: 0;
+    }
+
+    .console-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 58px;
+      padding: 0 18px;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      background: rgba(255,255,255,.045);
+    }
+
+    .console-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      padding: 16px;
+    }
+
+    .console-pane {
+      min-height: 240px;
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 14px;
+      background: #0d1117;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      overflow: hidden;
+      transition: border-color .2s ease, background .2s ease, transform .2s ease;
+    }
+
+    .pane-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      color: #f0f6fc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-weight: 850;
+    }
+
+    .terminal-line,
+    .diff-row {
+      display: block;
+      margin-bottom: 7px;
+      color: #c9d1d9;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .dim { color: #8b949e; }
+    .good { color: var(--green); }
+    .warn { color: #d29922; }
+    .add { color: var(--green); }
+    .remove { color: var(--red); }
+
+    .surface-grid,
+    .extensions-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 28px;
+    }
+
+    .surface-card {
+      min-height: 260px;
+    }
+
+    .surface-list {
+      margin: 18px 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .surface-list li::before {
+      content: ">";
+      margin-right: 8px;
+      color: var(--accent-2);
+      font-weight: 900;
+    }
+
+    .workflow-section {
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    .workflow-intro {
+      width: min(100% - 48px, var(--max));
+      margin: 0 auto 28px;
+    }
+
+    .workflow-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      color: #8bd3ff;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .workflow-shell {
+      width: min(100% - 48px, 1320px);
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    .workflow-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .workflow-progress {
+      flex: 1;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      overflow: hidden;
+    }
+
+    .workflow-progress span {
+      display: block;
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), #8bd3ff);
+    }
+
+    .icon-button {
+      display: inline-grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 12px;
+      color: #fff;
+      background: rgba(255,255,255,.08);
+      cursor: pointer;
+    }
+
+    .workflow-viewport {
+      overflow-x: auto;
+      overflow-y: hidden;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(88,166,255,.72) rgba(255,255,255,.08);
+      border-radius: 18px;
+    }
+
+    .workflow-viewport.is-active {
+      outline: 1px solid rgba(88,166,255,.46);
+      box-shadow: 0 0 0 6px rgba(47,129,247,.1), var(--glass);
+    }
+
+    .workflow-track {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(430px, 520px);
+      gap: 14px;
+      padding: 4px 4px 12px;
+    }
+
+    .workflow-card {
+      min-height: 520px;
+      padding: 22px;
+      scroll-snap-align: start;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 16px;
+    }
+
+    .step-number {
+      color: rgba(255,255,255,.34);
+      font-size: 52px;
+      line-height: 1;
+      font-weight: 950;
+      letter-spacing: 0;
+    }
+
+    .workflow-note {
+      padding: 14px;
+      border: 1px solid rgba(88,166,255,.26);
+      border-radius: 14px;
+      background: rgba(47,129,247,.11);
+      color: #dbeafe;
+      font-size: 14px;
+    }
+
+    .workflow-visual {
+      display: grid;
+      gap: 10px;
+      align-content: end;
+      min-height: 170px;
+    }
+
+    .route-step,
+    .code-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 13px;
+      background: rgba(13,17,23,.72);
+      color: #f0f6fc;
+      font-weight: 780;
+    }
+
+    .code-chip {
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 12px;
+      color: #c9d1d9;
+    }
+
+    .safety-grid,
+    .video-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr);
+      gap: 18px;
+      align-items: stretch;
+      margin-top: 28px;
+    }
+
+    .video-player {
+      padding: 14px;
+      overflow: visible;
+    }
+
+    .video-frame {
+      position: relative;
+      aspect-ratio: 16 / 10;
+      min-height: 360px;
+      border-radius: 16px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 40%, rgba(47,129,247,.2), transparent 36%),
+        linear-gradient(145deg, rgba(13,17,23,.96), rgba(2,4,9,.96));
+      border: 1px solid rgba(255,255,255,.12);
+    }
+
+    .generated-demo {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 360px;
+      overflow: hidden;
+      isolation: isolate;
+      background:
+        radial-gradient(circle at 50% 44%, rgba(88,166,255,.18), transparent 35%),
+        linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px),
+        #05080f;
+      background-size: auto, 34px 34px, 34px 34px;
+    }
+
+    .generated-demo::before {
+      content: "";
+      position: absolute;
+      inset: -20%;
+      z-index: 0;
+      background:
+        conic-gradient(from 180deg at 50% 50%, transparent 0 18deg, rgba(88,166,255,.18) 20deg 24deg, transparent 26deg 76deg, rgba(139,211,255,.1) 78deg 82deg, transparent 84deg);
+      mask-image: radial-gradient(circle, transparent 20%, #000 22%, #000 52%, transparent 54%);
+      animation: orbit 26s linear infinite;
+      opacity: .8;
+    }
+
+    .generated-demo::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.08), transparent 18%, transparent 78%, rgba(0,0,0,.28)),
+        radial-gradient(circle at 50% 50%, transparent 48%, rgba(0,0,0,.54));
+    }
+
+    .demo-hud {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      z-index: 6;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: #dbeafe;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 11px;
+      letter-spacing: 0;
+    }
+
+    .demo-hud span {
+      padding: 6px 9px;
+      border: 1px solid rgba(88,166,255,.28);
+      border-radius: 10px;
+      background: rgba(3, 12, 24, .72);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.1);
+    }
+
+    .demo-canvas {
+      position: absolute;
+      inset: 54px 14px 112px;
+      z-index: 2;
+    }
+
+    .demo-node {
+      position: absolute;
+      z-index: 3;
+      min-width: 118px;
+      padding: 12px 14px;
+      border: 1px solid rgba(88,166,255,.34);
+      border-radius: 14px;
+      background:
+        linear-gradient(145deg, rgba(47,129,247,.16), rgba(255,255,255,.045)),
+        rgba(3, 7, 14, .86);
+      box-shadow: 0 18px 48px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.12);
+      transition: transform .45s ease, border-color .25s ease, background .25s ease, opacity .25s ease;
+    }
+
+    .demo-node strong,
+    .demo-terminal strong,
+    .demo-diff strong {
+      display: block;
+      color: #fff;
+      line-height: 1.2;
+      font-weight: 900;
+    }
+
+    .demo-node small {
+      display: block;
+      margin-top: 5px;
+      color: #9fb4c9;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .demo-node.user { left: 4%; top: 6%; }
+    .demo-node.codex {
+      left: 50%;
+      top: 43%;
+      min-width: 132px;
+      text-align: center;
+      transform: translate(-50%, -50%);
+      border-color: rgba(139,211,255,.58);
+      background:
+        radial-gradient(circle at 50% 0%, rgba(139,211,255,.22), transparent 58%),
+        rgba(4, 18, 34, .9);
+    }
+    .demo-node.repo { right: 4%; top: 7%; }
+    .demo-node.tests { right: 6%; bottom: 8%; }
+    .demo-node.review { left: 5%; bottom: 9%; }
+
+    .demo-trace {
+      position: absolute;
+      z-index: 1;
+      height: 2px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, transparent, rgba(88,166,255,.72), transparent);
+      box-shadow: 0 0 18px rgba(47,129,247,.34);
+      transform-origin: left center;
+      opacity: .46;
+      overflow: hidden;
+    }
+
+    .demo-trace::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, #8bd3ff, transparent);
+      animation: trace-flow 2.2s linear infinite;
+    }
+
+    .trace-a { left: 24%; top: 23%; width: 36%; rotate: 22deg; }
+    .trace-b { left: 52%; top: 47%; width: 32%; rotate: -24deg; }
+    .trace-c { left: 20%; bottom: 24%; width: 46%; rotate: -11deg; }
+
+    .demo-flow-dot {
+      position: absolute;
+      z-index: 5;
+      left: 0;
+      top: 0;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #8bd3ff;
+      box-shadow: 0 0 0 8px rgba(47,129,247,.12), 0 0 34px rgba(139,211,255,.86);
+      animation: demo-path-field 4.8s cubic-bezier(.48,0,.18,1) infinite;
+    }
+
+    .demo-output-row {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: 14px;
+      z-index: 4;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    .demo-terminal,
+    .demo-diff {
+      position: relative;
+      z-index: 3;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 14px;
+      background: rgba(2, 6, 12, .84);
+      box-shadow: 0 18px 48px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.08);
+      backdrop-filter: blur(16px);
+    }
+
+    .demo-terminal {
+      padding: 11px 12px;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 10.5px;
+      line-height: 1.55;
+      color: #c9d1d9;
+    }
+
+    .demo-terminal span,
+    .demo-diff span {
+      display: block;
+      overflow-wrap: anywhere;
+    }
+
+    .demo-diff {
+      padding: 11px 12px;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 10.5px;
+      line-height: 1.55;
+      color: #c9d1d9;
+    }
+
+    .demo-caption {
+      margin: 12px 0 0;
+      padding: 12px 14px;
+      border: 1px solid rgba(139,211,255,.22);
+      border-radius: 14px;
+      color: #dbeafe;
+      font-size: 13px;
+      line-height: 1.6;
+      background: rgba(4, 18, 34, .72);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 12px 32px rgba(0,0,0,.24);
+      backdrop-filter: blur(14px);
+    }
+
+    .generated-demo[data-demo-scene="field"] .demo-node.user,
+    .generated-demo[data-demo-scene="field"] .demo-node.repo,
+    .generated-demo[data-demo-scene="field"] .demo-node.codex,
+    .generated-demo[data-demo-scene="code"] .demo-node.codex,
+    .generated-demo[data-demo-scene="code"] .demo-node.tests,
+    .generated-demo[data-demo-scene="review"] .demo-node.review,
+    .generated-demo[data-demo-scene="review"] .demo-node.codex {
+      border-color: rgba(139,211,255,.72);
+      box-shadow: 0 18px 56px rgba(47,129,247,.22), inset 0 1px 0 rgba(255,255,255,.16);
+    }
+
+    .generated-demo[data-demo-scene="code"] .demo-flow-dot { animation-name: demo-path-code; }
+    .generated-demo[data-demo-scene="review"] .demo-flow-dot { animation-name: demo-path-review; }
+
+    .generated-demo[data-demo-scene="code"] .demo-node.codex {
+      transform: translate(-50%, -50%) scale(1.06);
+    }
+
+    .generated-demo[data-demo-scene="review"] .demo-diff {
+      border-color: rgba(63,185,80,.38);
+      background: rgba(4, 14, 12, .88);
+    }
+
+    @keyframes trace-flow {
+      from { transform: translateX(-100%); }
+      to { transform: translateX(100%); }
+    }
+
+    @keyframes demo-path-field {
+      0% { transform: translate(54px, 48px) scale(.86); opacity: .35; }
+      28% { transform: translate(250px, 142px) scale(1); opacity: 1; }
+      58% { transform: translate(414px, 58px) scale(.92); opacity: .9; }
+      100% { transform: translate(54px, 48px) scale(.86); opacity: .35; }
+    }
+
+    @keyframes demo-path-code {
+      0% { transform: translate(246px, 142px) scale(.9); opacity: .38; }
+      34% { transform: translate(422px, 256px) scale(1); opacity: 1; }
+      68% { transform: translate(96px, 242px) scale(.92); opacity: .88; }
+      100% { transform: translate(246px, 142px) scale(.9); opacity: .38; }
+    }
+
+    @keyframes demo-path-review {
+      0% { transform: translate(418px, 240px) scale(.9); opacity: .42; }
+      35% { transform: translate(98px, 246px) scale(1); opacity: 1; }
+      68% { transform: translate(250px, 142px) scale(.94); opacity: .9; }
+      100% { transform: translate(418px, 240px) scale(.9); opacity: .42; }
+    }
+
+    .video-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .video-tab {
+      position: relative;
+      min-height: 42px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 12px;
+      color: #dbe6f2;
+      background: rgba(255,255,255,.07);
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .video-tab.is-active {
+      color: #fff;
+      border-color: rgba(88,166,255,.5);
+      background: rgba(47,129,247,.22);
+    }
+
+    .video-tip {
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 12px);
+      z-index: 8;
+      width: min(280px, 82vw);
+      padding: 12px;
+      border: 1px solid rgba(88,166,255,.36);
+      border-radius: 12px;
+      color: #eaf4ff;
+      background: rgba(3, 12, 24, .92);
+      box-shadow: 0 18px 48px rgba(0,0,0,.38), 0 0 28px rgba(47,129,247,.18);
+      backdrop-filter: blur(16px) saturate(150%);
+      font-size: 12px;
+      font-weight: 760;
+      line-height: 1.55;
+      text-align: left;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateX(-50%) translateY(6px);
+      transition: opacity .18s ease, visibility .18s ease, transform .18s ease;
+    }
+
+    .video-tab:hover .video-tip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .video-tab:first-child .video-tip {
+      left: 0;
+      transform: translateX(0) translateY(6px);
+    }
+
+    .video-tab:first-child:hover .video-tip,
+    .video-tab:last-child:hover .video-tip {
+      transform: translateX(0) translateY(0);
+    }
+
+    .video-tab:last-child .video-tip {
+      left: auto;
+      right: 0;
+      transform: translateX(0) translateY(6px);
+    }
+
+    @media (hover: none) {
+      .video-tip {
+        display: none;
+      }
+    }
+
+    .demo-timeline {
+      display: grid;
+      gap: 12px;
+    }
+
+    .timeline-row {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 12px;
+      width: 100%;
+      padding: 14px;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color .2s ease, background .2s ease, transform .2s ease;
+    }
+
+    .timeline-row:hover,
+    .timeline-row:focus-visible {
+      border-color: rgba(88,166,255,.34);
+      outline: none;
+      transform: translateY(-1px);
+    }
+
+    .timeline-row:active {
+      transform: translateY(1px);
+    }
+
+    .timeline-row.is-active {
+      border-color: rgba(88,166,255,.42);
+      background:
+        linear-gradient(145deg, rgba(47,129,247,.17), rgba(255,255,255,.045)),
+        rgba(7, 10, 16, .84);
+    }
+
+    .timeline-row small {
+      display: none;
+      margin-top: 9px;
+      color: #8bd3ff;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .timeline-row.is-active small {
+      display: block;
+    }
+
+    .timeline-row span {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: rgba(47,129,247,.2);
+      color: #fff;
+      font-weight: 900;
+    }
+
+    .sandbox-stage {
+      min-height: 500px;
+      padding: 22px;
+    }
+
+    .sandbox-map {
+      position: relative;
+      min-height: 470px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.12);
+      background:
+        radial-gradient(circle at 50% 38%, rgba(47,129,247,.18), transparent 34%),
+        linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px),
+        rgba(3, 7, 14, .82);
+      background-size: auto, 32px 32px, 32px 32px;
+      overflow: hidden;
+    }
+
+    .sandbox-map::before {
+      content: "";
+      position: absolute;
+      inset: -20%;
+      z-index: 0;
+      background:
+        repeating-conic-gradient(from 20deg, rgba(88,166,255,.11) 0 4deg, transparent 4deg 16deg),
+        radial-gradient(circle, transparent 44%, rgba(88,166,255,.08) 45%, transparent 54%);
+      opacity: .42;
+      animation: orbit 34s linear infinite;
+    }
+
+    .sandbox-map::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 50%, transparent 58%, rgba(0,0,0,.5));
+    }
+
+    .safety-diagram-title {
+      position: absolute;
+      z-index: 1;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      color: #dbeafe;
+      font-size: 12px;
+    }
+
+    .safety-diagram-title span,
+    .safety-diagram-title small {
+      padding: 6px 10px;
+      border: 1px solid rgba(88,166,255,.22);
+      border-radius: 10px;
+      background: rgba(3, 12, 24, .72);
+    }
+
+    .safety-flow {
+      position: absolute;
+      inset: 68px 18px 150px;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(118px, 148px) minmax(0, 1fr);
+      grid-template-rows: minmax(112px, 1fr) minmax(112px, 1fr);
+      grid-template-areas:
+        "project core gate"
+        "git core blocked";
+      gap: 14px;
+    }
+
+    .safety-path-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .safety-path {
+      fill: none;
+      stroke: rgba(88,166,255,.3);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-dasharray: 8 11;
+      animation: path-drift 2.6s linear infinite;
+      opacity: .24;
+      transition: opacity .25s ease, stroke .25s ease, stroke-width .25s ease;
+    }
+
+    .safety-node {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      width: 100%;
+      min-width: 0;
+      min-height: 0;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.13);
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.06), rgba(255,255,255,.025)),
+        rgba(3, 7, 14, .86);
+      box-shadow: 0 18px 48px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.1);
+      transition: transform .35s ease, border-color .25s ease, background .25s ease, box-shadow .25s ease;
+    }
+
+    .safety-node .mark {
+      display: inline-grid;
+      place-items: center;
+      width: 30px;
+      height: 24px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      background: rgba(47,129,247,.22);
+      color: #8bd3ff;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .safety-node strong {
+      display: block;
+      color: #fff;
+      font-weight: 900;
+      line-height: 1.25;
+    }
+
+    .safety-node small {
+      display: block;
+      margin-top: 5px;
+      color: #9fb4c9;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .safety-node.project { grid-area: project; border-color: rgba(63,185,80,.34); }
+    .safety-node.gate { grid-area: gate; }
+    .safety-node.git { grid-area: git; border-color: rgba(88,166,255,.34); }
+    .safety-node.blocked { grid-area: blocked; border-color: rgba(255,123,114,.36); }
+
+    .safety-agent {
+      position: relative;
+      z-index: 4;
+      grid-area: core;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      min-height: 240px;
+      border-radius: 22px;
+      color: #fff;
+      background:
+        radial-gradient(circle at 34% 18%, rgba(255,255,255,.46), transparent 28%),
+        linear-gradient(145deg, rgba(47,129,247,.94), rgba(4,18,34,.92));
+      border: 1px solid rgba(139,211,255,.38);
+      box-shadow: 0 22px 54px rgba(47,129,247,.3), 0 0 0 10px rgba(47,129,247,.08), inset 0 1px 0 rgba(255,255,255,.18);
+      overflow: hidden;
+      transition: border-color .25s ease, box-shadow .25s ease, filter .25s ease;
+    }
+
+    .safety-agent::before,
+    .safety-agent::after {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border-radius: 18px;
+      pointer-events: none;
+    }
+
+    .safety-agent::before {
+      border: 1px solid rgba(139,211,255,.26);
+      background:
+        linear-gradient(90deg, transparent, rgba(139,211,255,.28), transparent),
+        repeating-linear-gradient(180deg, transparent 0 22px, rgba(139,211,255,.14) 23px, transparent 24px);
+      animation: core-scan 3.4s ease-in-out infinite alternate;
+    }
+
+    .safety-agent::after {
+      inset: 34px;
+      border: 1px solid rgba(139,211,255,.42);
+      box-shadow: 0 0 30px rgba(139,211,255,.18);
+      animation: core-pulse 2.8s ease-in-out infinite;
+    }
+
+    .safety-agent strong {
+      position: relative;
+      z-index: 1;
+      font-size: 15px;
+      line-height: 1.1;
+    }
+
+    .safety-agent span {
+      position: relative;
+      z-index: 1;
+      color: rgba(255,255,255,.76);
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 10px;
+    }
+
+    .safety-explainer {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+      z-index: 3;
+      padding: 13px 14px;
+      border: 1px solid rgba(88,166,255,.24);
+      border-radius: 14px;
+      background: rgba(3, 12, 24, .78);
+      color: #dbeafe;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+      backdrop-filter: blur(14px);
+    }
+
+    .safety-explainer strong {
+      display: block;
+      color: #fff;
+      font-weight: 900;
+      margin-bottom: 3px;
+    }
+
+    .safety-explainer span {
+      color: #a7c7e8;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .sandbox-map[data-safety-state="scope"] .path-scope,
+    .sandbox-map[data-safety-state="approval"] .path-approval,
+    .sandbox-map[data-safety-state="git"] .path-git,
+    .sandbox-map[data-safety-state="blocked"] .path-blocked {
+      opacity: .92;
+      stroke-width: 3;
+      stroke: #8bd3ff;
+    }
+
+    .sandbox-map[data-safety-state="scope"] .safety-node.project,
+    .sandbox-map[data-safety-state="approval"] .safety-node.gate,
+    .sandbox-map[data-safety-state="git"] .safety-node.git,
+    .sandbox-map[data-safety-state="blocked"] .safety-node.blocked {
+      transform: translateY(-4px);
+      border-color: rgba(139,211,255,.64);
+      background:
+        linear-gradient(145deg, rgba(47,129,247,.2), rgba(255,255,255,.05)),
+        rgba(4, 18, 34, .9);
+      box-shadow: 0 20px 58px rgba(47,129,247,.2), inset 0 1px 0 rgba(255,255,255,.14);
+    }
+
+    .sandbox-map[data-safety-state="approval"] .safety-node.gate { transform: translateY(-4px); }
+
+    .sandbox-map[data-safety-state="blocked"] .path-blocked {
+      stroke: #ff7b72;
+    }
+
+    .sandbox-map[data-safety-state="blocked"] .safety-node.blocked {
+      border-color: rgba(255,123,114,.72);
+      background:
+        linear-gradient(145deg, rgba(255,123,114,.18), rgba(255,255,255,.045)),
+        rgba(16, 8, 10, .9);
+      box-shadow: 0 20px 58px rgba(255,123,114,.18), inset 0 1px 0 rgba(255,255,255,.12);
+    }
+
+    .sandbox-map[data-safety-state="scope"] .safety-agent,
+    .sandbox-map[data-safety-state="approval"] .safety-agent,
+    .sandbox-map[data-safety-state="git"] .safety-agent {
+      border-color: rgba(139,211,255,.44);
+    }
+
+    .sandbox-map[data-safety-state="blocked"] .safety-agent {
+      filter: saturate(135%);
+      box-shadow: 0 22px 54px rgba(255,123,114,.28), 0 0 0 10px rgba(255,123,114,.1);
+      animation: blocked-pulse .75s ease both;
+    }
+
+    @keyframes path-drift {
+      to { stroke-dashoffset: -38; }
+    }
+
+    @keyframes core-scan {
+      from { transform: translateY(-8px); opacity: .55; }
+      to { transform: translateY(8px); opacity: .92; }
+    }
+
+    @keyframes core-pulse {
+      0%, 100% { transform: scale(.94); opacity: .45; }
+      50% { transform: scale(1.06); opacity: .86; }
+    }
+
+    @keyframes blocked-pulse {
+      0%, 100% { filter: none; }
+      45% { filter: saturate(160%) brightness(1.15); }
+    }
+
+    .safety-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .safety-item {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 14px;
+      width: 100%;
+      padding: 16px;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color .2s ease, background .2s ease, transform .2s ease;
+    }
+
+    .safety-item:hover,
+    .safety-item:focus-visible {
+      border-color: rgba(88,166,255,.34);
+      outline: none;
+    }
+
+    .safety-item:active {
+      transform: translateY(1px);
+    }
+
+    .safety-item.is-active {
+      border-color: rgba(88,166,255,.48);
+      background:
+        linear-gradient(145deg, rgba(47,129,247,.18), rgba(255,255,255,.04)),
+        rgba(7, 10, 16, .84);
+    }
+
+    .script-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 28px;
+    }
+
+    .closing-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-top: 24px;
+      padding: 22px;
+    }
+
+    @media (max-width: 980px) {
+      .nav-links {
+        display: none;
+      }
+
+      .nav {
+        justify-content: center;
+      }
+
+      .brand {
+        min-width: 0;
+      }
+
+      .hero-grid,
+      .two-col,
+      .codex-console,
+      .safety-grid,
+      .video-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .surface-grid,
+      .extensions-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .script-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .hero-stage {
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 680px) {
+      section {
+        padding: 86px 16px;
+      }
+
+      .hero {
+        padding-top: 96px;
+      }
+
+      h1 {
+        font-size: clamp(38px, 11vw, 48px);
+      }
+
+      h2 {
+        font-size: clamp(30px, 9vw, 42px);
+      }
+
+      .lead {
+        font-size: 16px;
+        line-height: 1.7;
+      }
+
+      .hero-actions,
+      .inline-actions,
+      .closing-card,
+      .workflow-controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .button {
+        width: 100%;
+      }
+
+      .stats-grid,
+      .model-board,
+      .surface-grid,
+      .extensions-grid,
+      .script-grid,
+      .repo-footer,
+      .console-grid,
+      .video-tabs {
+        grid-template-columns: 1fr;
+      }
+
+      .workspace-demo,
+      .repo-body {
+        grid-template-columns: 1fr;
+      }
+
+      .file-tree {
+        border-right: 0;
+        border-bottom: 1px solid rgba(255,255,255,.08);
+      }
+
+      .command-orbit {
+        width: 128px;
+        height: 128px;
+        opacity: .45;
+      }
+
+      .workflow-shell,
+      .workflow-intro {
+        width: min(100% - 32px, var(--max));
+      }
+
+      .workflow-track {
+        grid-auto-columns: minmax(300px, calc(100vw - 52px));
+      }
+
+      .workflow-card {
+        min-height: 560px;
+      }
+
+      .bridge-row {
+        grid-template-columns: 1fr;
+      }
+
+      .console-sidebar {
+        border-right: 0;
+        border-bottom: 1px solid rgba(255,255,255,.1);
+      }
+
+      .sandbox-map {
+        min-height: 760px;
+      }
+
+      .safety-flow {
+        inset: 62px 14px 170px;
+        grid-template-columns: 1fr;
+        grid-template-rows: 98px repeat(4, minmax(94px, auto));
+        grid-template-areas:
+          "core"
+          "project"
+          "gate"
+          "git"
+          "blocked";
+      }
+
+      .safety-path-svg {
+        display: none;
+      }
+
+      .safety-agent {
+        min-height: 98px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .001ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas class="neural-canvas js-neural-canvas" aria-hidden="true"></canvas>
+  <div class="cursor-halo js-cursor-halo" aria-hidden="true"></div>
+  <div class="ambient" aria-hidden="true">
+    <span class="holo-ribbon"></span>
+    <span class="depth-grid"></span>
+    <span class="spectral-core"></span>
+    <span class="node-field"></span>
+    <span class="matrix-rain"></span>
+    <span class="data-beam"></span>
+    <span class="data-beam alt"></span>
+    <span class="scanline"></span>
+    <span class="scanline"></span>
+    <span class="scanline"></span>
+  </div>
+  <div class="page-progress" aria-hidden="true"><div class="page-progress__bar"></div></div>
+
+  <nav class="nav" aria-label="章节导航">
+    <a class="brand" href="#hero" aria-label="返回开场">
+      <span class="brand-mark"><i data-lucide="terminal-square" class="icon"></i></span>
+      <span>Codex Field Guide</span>
+    </a>
+    <div class="nav-links">
+      <a href="#ai-map">AI 分类</a>
+      <a href="#agent-layer">Agent</a>
+      <a href="#codex">Codex</a>
+      <a href="#workflow">工作流</a>
+      <a href="#video-demo">视频</a>
+      <a href="#safety">安全</a>
+      <a href="#script">路线</a>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero" id="hero" data-section>
+      <div class="section-inner hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">15-30 分钟互动演示</p>
+          <h1>从会聊天的 AI，到会推进工程的 <span class="accent-text">Codex</span></h1>
+          <p class="lead">先记住一句话：Codex 不是“更会写代码的聊天框”，而是能进入项目、读取文件、制定计划、修改代码、运行命令、检查 diff，并把结果推进到可 review 状态的工程 Agent。</p>
+          <div class="hero-actions">
+            <a class="button primary" href="#ai-map"><i data-lucide="play" class="icon"></i>进入第一部分</a>
+            <a class="button" href="#video-demo"><i data-lucide="video" class="icon"></i>先看视频演示</a>
+          </div>
+          <div class="tag-cloud">
+            <span class="pill">从零理解</span>
+            <span class="pill">现场演示</span>
+            <span class="pill">交付检查</span>
+          </div>
+          <div class="stats-grid">
+            <div class="stat"><strong>9</strong><span>讲解章节</span></div>
+            <div class="stat"><strong>3</strong><span>演示场景</span></div>
+            <div class="stat"><strong>8</strong><span>工作流动作</span></div>
+          </div>
+        </div>
+
+        <div class="glass hero-stage js-reactive" aria-label="Codex 工作台模拟">
+          <div class="stage-shell">
+            <div class="stage-header">
+              <div class="traffic"><span></span><span></span><span></span></div>
+              <span>local workspace / codex task</span>
+            </div>
+            <div class="command-orbit" aria-hidden="true"></div>
+            <div class="workspace-demo">
+              <div class="chat-stack">
+                <div class="bubble user">帮我把这个网页升级成 Codex 互动导览页。</div>
+                <div class="bubble">Codex 先读取文件结构，再提出计划，随后小步修改并验证。</div>
+                <div class="bubble code">$ rg "workflow|video|Codex"<br>$ inspect index.html<br>$ edit single file</div>
+                <div class="bubble">普通聊天给答案，Codex 进入项目现场，把任务推进到可检查状态。</div>
+              </div>
+              <div class="repo-panel">
+                <div class="repo-tabs">
+                  <span><i data-lucide="folder" class="icon"></i>项目</span>
+                  <span><i data-lucide="terminal" class="icon"></i>命令</span>
+                  <span><i data-lucide="git-compare" class="icon"></i>diff</span>
+                </div>
+                <div class="repo-body">
+                  <div class="file-tree">
+                    <div class="file-row active"><i data-lucide="file-code" class="icon"></i>index.html</div>
+                    <div class="file-row"><i data-lucide="file-cog" class="icon"></i>AGENTS.md</div>
+                    <div class="file-row"><i data-lucide="package" class="icon"></i>package.json</div>
+                  </div>
+                  <div class="code-pane">
+                    <span><span class="tag">&lt;section</span> <span class="attr">id=</span><span class="txt">"codex"</span><span class="tag">&gt;</span></span>
+                    <span>  <span class="tag">&lt;h2&gt;</span><span class="txt">Codex 是工程 Agent</span><span class="tag">&lt;/h2&gt;</span></span>
+                    <span>  <span class="tag">&lt;p&gt;</span>读项目、改代码、跑验证、给 diff。<span class="tag">&lt;/p&gt;</span></span>
+                    <span><span class="tag">&lt;/section&gt;</span></span>
+                  </div>
+                </div>
+                <div class="repo-footer">
+                  <div class="terminal-mini">$ npm run build<br><span class="plus">✓ build passed</span></div>
+                  <div class="diff-mini"><span class="plus">+ detailed lecture</span><br><span class="minus">- vague outline</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="ai-map" data-section>
+      <div class="section-inner two-col">
+        <div>
+          <p class="eyebrow">第一部分：AI 大模型地图</p>
+          <h2>大模型不只是聊天机器人，Codex 属于工程 Agent</h2>
+          <p class="lead">我们先用一张地图建立直觉：模型提供理解和生成能力，产品把能力包装成入口，Agent 则在模型外面加上工具、计划、权限和反馈循环。Codex 站在这个 Agent 层，面向真实软件工程任务。</p>
+          <ul class="lesson-list">
+            <li><span>1</span><div><strong>语言模型</strong><br>理解文字、生成文字、解释概念、总结材料。普通聊天 AI 主要让人感觉到这类能力。</div></li>
+            <li><span>2</span><div><strong>多模态模型</strong><br>可以同时处理文字、图片、声音、视频等输入。它让 AI 不只读文字，也能看界面、看截图和听内容。</div></li>
+            <li><span>3</span><div><strong>工具型 Agent</strong><br>模型不只是回答，而是能读文件、调用命令、打开网页、查资料、做步骤规划，逐步完成任务。</div></li>
+            <li><span>4</span><div><strong>工程 Agent</strong><br>把 Agent 放进代码仓库里，它就要围绕需求、文件、测试、diff、review 和交付来工作。Codex 就是这一类。</div></li>
+          </ul>
+        </div>
+        <div class="model-board">
+          <article class="glass-card model-card js-reveal">
+            <span class="icon-wrap"><i data-lucide="type" class="icon"></i></span>
+            <h3>2021：补全</h3>
+            <p>Copilot 时代，AI 像更聪明的输入法。开发者写开头，它补后面，但项目拆解、测试和交付仍主要靠人。</p>
+          </article>
+          <article class="glass-card model-card js-reveal">
+            <span class="icon-wrap"><i data-lucide="message-square-text" class="icon"></i></span>
+            <h3>2022：对话</h3>
+            <p>ChatGPT 让 AI 从补全进入问答。它能解释报错、写片段、给建议，但通常不在真实项目现场。</p>
+          </article>
+          <article class="glass-card model-card js-reveal">
+            <span class="icon-wrap"><i data-lucide="panel-right-open" class="icon"></i></span>
+            <h3>2023-2024：协作</h3>
+            <p>Cursor 这类 AI 编辑器让 AI 进入编辑器，能看文件、改局部、跨文件协作，开始贴近项目上下文。</p>
+          </article>
+          <article class="glass-card model-card js-reveal">
+            <span class="icon-wrap"><i data-lucide="bot" class="icon"></i></span>
+            <h3>2025：工程 Agent</h3>
+            <p>Codex 的重点从“辅助写代码”转向“推进工程任务”：读项目、改代码、跑命令、检查结果。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="agent-layer" class="section-dark" data-section>
+      <div class="section-inner two-col">
+        <div>
+          <p class="eyebrow">第二部分：从模型到 Agent</p>
+          <h2>关键转折：AI 从“给答案”变成“推进任务”</h2>
+          <p class="lead">普通聊天工具主要给建议；AI 编辑器贴近项目修改；Codex 更进一步，把需求拆成步骤，在仓库里读文件、改文件、跑命令、看 diff，并把结果交给人审查。</p>
+        </div>
+        <div class="bridge">
+          <div class="glass-card bridge-row js-reveal">
+            <div class="bridge-label">ChatGPT</div>
+            <div><strong>顾问式回答</strong><p>适合解释概念、分析思路、生成片段。问题是上下文、代码迁移和验证仍要由人完成。</p></div>
+          </div>
+          <div class="glass-card bridge-row js-reveal">
+            <div class="bridge-label">Cursor</div>
+            <div><strong>编辑器协作</strong><p>AI 进入编辑器，能围绕当前项目做局部修改。它更贴近代码，但通常仍需要开发者持续盯住下一步。</p></div>
+          </div>
+          <div class="glass-card bridge-row js-reveal">
+            <div class="bridge-label">Codex</div>
+            <div><strong>工程执行</strong><p>面向软件开发任务，围绕仓库、命令、测试、diff、review、PR 和交付结果来工作。</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="codex" data-section>
+      <div class="section-inner">
+        <p class="eyebrow">第三部分：Codex 能力拆解</p>
+        <h2>Codex 的核心能力：先理解项目，再交付可审查结果</h2>
+        <p class="lead">这里要讲清一个关键区别：Codex 不是只会生成代码片段，而是能沿着工程任务往前走。它先读懂陌生项目，解释代码逻辑，再处理 bug、功能、测试、重构、文档和 PR，最后把命令结果与 diff 留给人审查。</p>
+
+        <div class="glass-card codex-console js-reactive">
+          <aside class="console-sidebar" aria-label="Codex 能力切换">
+            <button class="side-item is-active" type="button" data-console-tab="project"><i data-lucide="folder-open" class="icon"></i>读懂项目</button>
+            <button class="side-item" type="button" data-console-tab="logic"><i data-lucide="route" class="icon"></i>解释逻辑</button>
+            <button class="side-item" type="button" data-console-tab="bugfix"><i data-lucide="bug" class="icon"></i>修 bug 加功能</button>
+            <button class="side-item" type="button" data-console-tab="testing"><i data-lucide="flask-conical" class="icon"></i>测试与重构</button>
+            <button class="side-item" type="button" data-console-tab="docs"><i data-lucide="file-text" class="icon"></i>文档与 PR</button>
+            <button class="side-item" type="button" data-console-tab="review"><i data-lucide="git-compare" class="icon"></i>命令与 review</button>
+          </aside>
+          <div class="console-main">
+            <div class="console-toolbar">
+              <strong class="js-console-title">读懂一个陌生项目</strong>
+              <span class="pill js-console-pill">橙皮书 / Codex 能做什么</span>
+            </div>
+            <div class="console-grid">
+              <div class="console-pane js-reveal" data-console-pane="0">
+                <div class="pane-title"><i data-lucide="folder-search" class="icon"></i>Project Reading</div>
+                <span class="terminal-line dim">$ rg --files</span>
+                <span class="terminal-line">README / package / entry files</span>
+                <span class="terminal-line">tests / build commands / AGENTS.md</span>
+                <span class="terminal-line warn">先识别哪些文件不能随便动</span>
+              </div>
+              <div class="console-pane js-reveal" data-console-pane="1">
+                <div class="pane-title"><i data-lucide="terminal" class="icon"></i>Commands</div>
+                <span class="terminal-line">$ npm test / lint / typecheck</span>
+                <span class="terminal-line">$ git status</span>
+                <span class="terminal-line">$ git diff</span>
+                <span class="terminal-line good">结果必须能被复查</span>
+              </div>
+              <div class="console-pane js-reveal" data-console-pane="2">
+                <div class="pane-title"><i data-lucide="file-code" class="icon"></i>Code Change</div>
+                <span class="terminal-line">小步修改，不顺手重构</span>
+                <span class="terminal-line">不改公开 API 和业务边界</span>
+                <span class="terminal-line">补测试、补边界、补说明</span>
+                <span class="terminal-line good">把改动控制在任务范围内</span>
+              </div>
+              <div class="console-pane js-reveal" data-console-pane="3">
+                <div class="pane-title"><i data-lucide="clipboard-check" class="icon"></i>Review Summary</div>
+                <span class="terminal-line good">改了什么：文件和行级 diff</span>
+                <span class="terminal-line good">怎么验证：命令、截图、手测</span>
+                <span class="terminal-line warn">人来判断：是否满足需求和风险边界</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="surfaces" class="section-dark" data-section>
+      <div class="section-inner">
+        <p class="eyebrow">第四部分：Codex 的入口和场景</p>
+        <h2>同一个 Codex，可以在 App、CLI、IDE 和 Web 之间流转</h2>
+        <p class="lead">刚上手优先从 Codex App 开始，因为图形界面能看见项目、线程、计划、命令和 diff。熟悉 Git 与终端后，再把 CLI、IDE Extension、Web / Cloud 接进日常开发和团队协作。</p>
+        <div class="surface-grid">
+          <article class="glass-card surface-card js-reveal">
+            <span class="icon-wrap"><i data-lucide="app-window" class="icon"></i></span>
+            <h3>Codex App</h3>
+            <p>项目目录就是 Codex 进入的工作现场；thread 是一个具体任务；review pane 用来检查改了哪些文件和行。</p>
+            <ul class="surface-list"><li>一项任务一个 thread</li><li>看绿色新增和红色删除</li><li>确认后再接受改动</li></ul>
+          </article>
+          <article class="glass-card surface-card js-reveal">
+            <span class="icon-wrap"><i data-lucide="terminal-square" class="icon"></i></span>
+            <h3>Codex CLI</h3>
+            <p>终端里的本地仓库工作方式：进入项目目录，启动 Codex，复杂任务先 `/plan`，修改后用 `/diff` 看结果。</p>
+            <ul class="surface-list"><li>读写本地项目</li><li>运行测试和构建</li><li>适合 Git 工作流</li></ul>
+          </article>
+          <article class="glass-card surface-card js-reveal">
+            <span class="icon-wrap"><i data-lucide="code-2" class="icon"></i></span>
+            <h3>IDE Extension</h3>
+            <p>在 VS Code、Cursor 或 Windsurf 旁边使用 Codex，适合围绕当前文件、选中代码、局部 bug 和小功能协作。</p>
+            <ul class="surface-list"><li>贴近代码编辑</li><li>适合局部修改</li><li>适合日常开发</li></ul>
+          </article>
+          <article class="glass-card surface-card js-reveal">
+            <span class="icon-wrap"><i data-lucide="cloud" class="icon"></i></span>
+            <h3>Web / Cloud</h3>
+            <p>连接 GitHub 仓库后，可以让 Codex 在云端处理任务、开分支、整理变更并进入 PR 审查流程。</p>
+            <ul class="surface-list"><li>后台处理任务</li><li>适合多人协作</li><li>适合 PR 流程</li></ul>
+          </article>
+          <article class="glass-card surface-card js-reveal">
+            <span class="icon-wrap"><i data-lucide="globe-2" class="icon"></i></span>
+            <h3>Browser Use</h3>
+            <p>前端任务需要看真实页面：打开网页、验证交互、截图检查、确认移动端布局，这些步骤把代码改动连接到结果。</p>
+            <ul class="surface-list"><li>验证前端页面</li><li>检查响应式</li><li>辅助调试 UI</li></ul>
+          </article>
+          <article class="glass-card surface-card js-reveal">
+            <span class="icon-wrap"><i data-lucide="monitor-cog" class="icon"></i></span>
+            <h3>Computer Use</h3>
+            <p>当任务跨出编辑器，Codex 也可以借助桌面操作能力处理应用界面。能力越广，权限边界越要清楚。</p>
+            <ul class="surface-list"><li>桌面操作</li><li>跨应用流程</li><li>需要更严格边界</li></ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="workflow" class="workflow-section" data-section>
+      <div class="workflow-intro">
+        <p class="eyebrow">第五部分：最重要的使用方法</p>
+        <h2>稳定使用 Codex，不靠神奇提示词，靠工作流</h2>
+        <p class="lead">稳定使用 Codex 的核心不是背神奇提示词，而是把任务放进可控流程：先说清目标和边界，再建立上下文、制定计划、小步实现、运行验证、检查 diff，最后人工验收。</p>
+      </div>
+      <div class="glass workflow-shell js-reactive">
+        <div class="workflow-controls">
+          <button class="icon-button js-workflow-prev" type="button" aria-label="上一张"><i data-lucide="arrow-left" class="icon"></i></button>
+          <div class="workflow-progress" aria-hidden="true"><span class="js-workflow-progress"></span></div>
+          <button class="icon-button js-workflow-next" type="button" aria-label="下一张"><i data-lucide="arrow-right" class="icon"></i></button>
+        </div>
+        <div class="workflow-viewport js-workflow-viewport" tabindex="0" aria-label="Codex 工作流横向浏览区域">
+          <div class="workflow-track">
+            <article class="glass-card workflow-card">
+              <span class="step-number">01</span>
+              <div><h3>需求拆解</h3><p>不要只说“帮我优化”。要说目标、范围、限制和验收标准。Codex 的执行质量，很大一部分取决于边界是否清楚。</p></div>
+              <div class="workflow-note"><strong>关键理解：</strong>人负责定义方向和验收标准，Codex 负责推进过程。目标不清楚时，它推进得越快，偏得越远。</div>
+              <div class="workflow-visual"><div class="route-step"><i data-lucide="message-square-text" class="icon"></i>只优化首页首屏，不改登录和支付逻辑。</div></div>
+            </article>
+            <article class="glass-card workflow-card">
+              <span class="step-number">02</span>
+              <div><h3>建立上下文</h3><p>让 Codex 先读 README、目录结构、配置、入口文件、测试命令和 AGENTS.md。它需要理解项目现场，而不是凭印象写代码。</p></div>
+              <div class="workflow-note"><strong>先读项目：</strong>一个新人接手项目也不会马上改代码，Codex 也一样要先知道文件在哪里、入口在哪里、哪些地方不能碰。</div>
+              <div class="workflow-visual"><div class="code-chip">$ rg --files</div><div class="code-chip">$ cat package.json</div></div>
+            </article>
+            <article class="glass-card workflow-card">
+              <span class="step-number">03</span>
+              <div><h3>计划制定</h3><p>复杂任务先让 Codex 列计划。计划不是形式主义，它能把风险、顺序、文件范围和待确认点提前暴露出来。</p></div>
+              <div class="workflow-note"><strong>可讨论：</strong>计划把 AI 的内部推进行为变成外部对象；人可以确认、修改，或让它缩小范围。</div>
+              <div class="workflow-visual"><div class="route-step"><i data-lucide="list-checks" class="icon"></i>读文件 → 改结构 → 改样式 → 截图验证</div></div>
+            </article>
+            <article class="glass-card workflow-card">
+              <span class="step-number">04</span>
+              <div><h3>小步实现</h3><p>一次只改一个目标，避免“顺手重构”。小步意味着出错时容易定位，diff 也容易审核。</p></div>
+              <div class="workflow-note"><strong>控制范围：</strong>先做窄任务，再逐步扩大范围。不要第一步就把整个系统交给 Codex。</div>
+              <div class="workflow-visual"><div class="route-step"><i data-lucide="pencil-ruler" class="icon"></i>只改视觉层，不改业务逻辑</div></div>
+            </article>
+            <article class="glass-card workflow-card">
+              <span class="step-number">05</span>
+              <div><h3>测试验证</h3><p>能跑测试就跑测试，能跑 build 就跑 build，前端页面还要截图看实际效果。Codex 的价值也包括协助验证。</p></div>
+              <div class="workflow-note"><strong>完成标准：</strong>“AI 写了”不是完成，“AI 写了、跑过验证、能解释结果”才接近完成。</div>
+              <div class="workflow-visual"><div class="code-chip">$ npm run build</div><div class="code-chip plus">✓ build passed</div></div>
+            </article>
+            <article class="glass-card workflow-card">
+              <span class="step-number">06</span>
+              <div><h3>代码审查</h3><p>不要只看总结。真正要检查的是实际修改了哪些文件、哪些行、是否碰了不该碰的地方。</p></div>
+              <div class="workflow-note"><strong>看 diff：</strong>绿色是新增，红色是删除。review 是人机协作里最关键的一步，因为责任仍然在人。</div>
+              <div class="workflow-visual"><div class="code-chip plus">+ video demo section</div><div class="code-chip minus">- forced pinned scroll</div></div>
+            </article>
+            <article class="glass-card workflow-card">
+              <span class="step-number">07</span>
+              <div><h3>人工验收</h3><p>Codex 可以执行，但最终判断仍然是人：功能是否正确，视觉是否合适，风险是否可接受。</p></div>
+              <div class="workflow-note"><strong>责任边界：</strong>Codex 是执行者，不是责任转移器。无法验收的任务，就不适合让它独立完成。</div>
+              <div class="workflow-visual"><div class="route-step"><i data-lucide="user-check" class="icon"></i>确认功能、体验、风险和交付标准</div></div>
+            </article>
+            <article class="glass-card workflow-card">
+              <span class="step-number">08</span>
+              <div><h3>交付复盘</h3><p>满意后再提交、开 PR 或复盘。重复出现的规则可以写进 AGENTS.md，重复流程可以沉淀成 Skill。</p></div>
+              <div class="workflow-note"><strong>沉淀方法：</strong>一次任务是执行，多次任务要沉淀规则、模板和技能，下一次才会更稳。</div>
+              <div class="workflow-visual"><div class="route-step"><i data-lucide="git-pull-request" class="icon"></i>commit / PR / AGENTS.md / Skill</div></div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="video-demo" data-section>
+      <div class="section-inner">
+        <p class="eyebrow">第六部分：视频插入演示</p>
+        <h2>用视频建立现场感，再把动作拆成可理解的工程步骤</h2>
+        <p class="lead">现在看一个完整任务的推进链路：先把 Codex 放进具体项目，明确目标和边界；再让它读文件、列计划、小步修改并运行验证；最后看 diff、测试结果和风险说明，由人决定是否接受。</p>
+        <div class="video-grid">
+          <div class="glass-card video-player js-reactive">
+            <div class="video-frame">
+              <div class="generated-demo js-generated-demo" data-demo-scene="field" aria-label="Codex 工作流自生成动画">
+                <div class="demo-hud">
+                  <span class="js-demo-status">SCENE 01 / PROJECT INTAKE</span>
+                  <span>LIVE WORKFLOW LOOP</span>
+                </div>
+                <div class="demo-canvas">
+                  <div class="demo-trace trace-a"></div>
+                  <div class="demo-trace trace-b"></div>
+                  <div class="demo-trace trace-c"></div>
+                  <div class="demo-node user"><strong>需求</strong><small>目标 / 范围 / 验收</small></div>
+                  <div class="demo-node repo"><strong>项目仓库</strong><small>README / 入口 / 测试</small></div>
+                  <div class="demo-node codex"><strong>Codex</strong><small>计划 / 执行 / 说明</small></div>
+                  <div class="demo-node tests"><strong>验证</strong><small>test / lint / build</small></div>
+                  <div class="demo-node review"><strong>Review</strong><small>diff / 风险 / 结论</small></div>
+                  <div class="demo-flow-dot" aria-hidden="true"></div>
+                </div>
+                <div class="demo-output-row" aria-label="命令和 diff 输出">
+                  <div class="demo-terminal js-demo-terminal">
+                    <strong>terminal</strong>
+                    <span>$ rg --files</span>
+                    <span>$ read README / package</span>
+                    <span class="good">context ready</span>
+                  </div>
+                  <div class="demo-diff js-demo-diff">
+                    <strong>diff</strong>
+                    <span class="plus">+ clear task boundary</span>
+                    <span class="plus">+ project reading</span>
+                    <span class="warn">review required</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p class="demo-caption js-demo-caption">先把 Codex 放进具体项目目录，读入口文件、配置和测试命令，再开始动手。</p>
+            <div class="video-tabs" role="tablist" aria-label="切换演示场景">
+              <button class="video-tab is-active" type="button" data-video-tab="field">开发现场<span class="video-tip">从练习项目开始，建立 Git 基线，明确 thread 和任务边界。</span></button>
+              <button class="video-tab" type="button" data-video-tab="code">代码屏幕<span class="video-tip">先读文件和计划，再小步修改，运行测试、lint、typecheck 或 build。</span></button>
+              <button class="video-tab" type="button" data-video-tab="review">细节检查<span class="video-tip">看 diff、验证结果和风险说明，确认后再接受变更或进入 PR。</span></button>
+            </div>
+          </div>
+          <div class="demo-timeline js-demo-timeline" aria-live="polite">
+            <button class="glass-card timeline-row js-reveal is-active" type="button" data-step-index="0"><span>1</span><div><h3>选择练习项目</h3><p>先从不重要的小项目开始，不直接操作核心项目；Codex 进入的是具体目录，不是抽象聊天。</p><small>重点：这一步对应橙皮书“项目目录准备”，核心是练习目录、Git 基线和低风险任务。</small></div></button>
+            <button class="glass-card timeline-row js-reveal" type="button" data-step-index="1"><span>2</span><div><h3>打开 App / 新建 thread</h3><p>一个 thread 对应一个任务，不把所有需求塞进同一条长对话。</p></div></button>
+            <button class="glass-card timeline-row js-reveal" type="button" data-step-index="2"><span>3</span><div><h3>描述任务边界</h3><p>说清目标、范围、限制和验收标准，让 Codex 先理解现场。</p></div></button>
+            <button class="glass-card timeline-row js-reveal" type="button" data-step-index="3"><span>4</span><div><h3>等待计划与执行</h3><p>Codex 展示计划、读取文件、运行命令，过程本身要能被看见。</p></div></button>
+            <button class="glass-card timeline-row js-reveal" type="button" data-step-index="4"><span>5</span><div><h3>进入 review pane</h3><p>查看改动文件、绿色新增、红色删除，确认之后再接受。</p></div></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="safety" class="section-dark" data-section>
+      <div class="section-inner">
+        <p class="eyebrow">第七部分：安全和可控</p>
+        <h2>Codex 能动手，所以必须先有边界</h2>
+        <p class="lead">Codex 可以读取、修改文件，也可以在项目目录里运行命令。正确做法不是完全害怕，也不是完全放权，而是用项目目录、权限审批、Git、diff、worktree 和人工验收把风险锁住。</p>
+        <div class="safety-grid">
+          <div class="glass-card sandbox-stage js-reactive">
+            <div class="sandbox-map js-safety-map" data-safety-state="scope">
+              <div class="safety-diagram-title">
+                <span>Codex 安全边界图</span>
+                <small>项目内执行 / 风险先停</small>
+              </div>
+              <div class="safety-flow">
+                <svg class="safety-path-svg" viewBox="0 0 460 260" preserveAspectRatio="none" aria-hidden="true">
+                  <path class="safety-path path-scope" d="M78 56 C150 62 188 106 222 132"></path>
+                  <path class="safety-path path-approval" d="M222 132 C245 92 284 60 340 54"></path>
+                  <path class="safety-path path-git" d="M222 132 C186 180 136 210 76 216"></path>
+                  <path class="safety-path path-blocked" d="M222 132 C304 154 348 190 392 216"></path>
+                </svg>
+                <div class="safety-node project js-safety-primary"><span class="mark">01</span><strong>项目目录</strong><small>允许读写当前仓库</small></div>
+                <div class="safety-node gate js-safety-gate"><span class="mark">02</span><strong>审批闸门</strong><small>联网 / 删除 / 越界先确认</small></div>
+                <div class="safety-node git js-safety-secondary"><span class="mark">03</span><strong>Git 与 diff</strong><small>基线、回滚、逐行审查</small></div>
+                <div class="safety-node blocked js-safety-blocked"><span class="mark">04</span><strong>禁止区域</strong><small>生产数据 / 支付 / 鉴权</small></div>
+                <div class="safety-agent js-safety-agent"><strong>Codex</strong><span>Agent</span></div>
+              </div>
+              <div class="safety-explainer js-safety-detail"><strong>目录和权限</strong><span>Codex 只进入指定项目目录；密钥、真实数据和项目外文件不进入任务范围。</span></div>
+            </div>
+          </div>
+          <div class="safety-list">
+            <button class="glass-card safety-item js-reveal is-active" type="button" data-safety-tab="scope"><span class="icon-wrap"><i data-lucide="shield" class="icon"></i></span><div><h3>目录和权限</h3><p>只把 Codex 放进当前项目，不要直接授予整个磁盘。API Key 和密码放在 `.env`，不要写进代码。</p></div></button>
+            <button class="glass-card safety-item js-reveal" type="button" data-safety-tab="approval"><span class="icon-wrap"><i data-lucide="mouse-pointer-click" class="icon"></i></span><div><h3>审批</h3><p>联网、越界、删除、移动、安装依赖、改配置这类操作先停下来，让人判断是否允许。</p></div></button>
+            <button class="glass-card safety-item js-reveal" type="button" data-safety-tab="git"><span class="icon-wrap"><i data-lucide="history" class="icon"></i></span><div><h3>Git 和 diff</h3><p>开始前先初始化 Git 或提交基线。每次改动都看 diff，确认没有碰登录、支付、权限等敏感逻辑。</p></div></button>
+            <button class="glass-card safety-item js-reveal" type="button" data-safety-tab="blocked"><span class="icon-wrap"><i data-lucide="ban" class="icon"></i></span><div><h3>不适合直接交给 Codex</h3><p>生产数据库、真实用户数据、支付核心、鉴权安全核心、大迁移、无备份重要项目、无测试核心业务、自己无法验收的任务。</p></div></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="extensions" data-section>
+      <div class="section-inner">
+        <p class="eyebrow">第八部分：进阶扩展</p>
+        <h2>Plugin、Skill、MCP：安装能力、固定方法、连接工具</h2>
+        <p class="lead">Codex 不是孤立聊天框。重复出现的项目规则可以写进 AGENTS.md，固定流程可以变成 Skill，外部工具和数据可以通过 MCP 连接，多个能力还可以打包成 Plugin。</p>
+        <div class="extensions-grid">
+          <article class="glass-card extension-card js-reveal"><span class="icon-wrap"><i data-lucide="file-cog" class="icon"></i></span><h3>AGENTS.md</h3><p>项目级说明书，记录技术栈、命令、代码风格、边界、验收方式和不要触碰的区域。</p></article>
+          <article class="glass-card extension-card js-reveal"><span class="icon-wrap"><i data-lucide="badge-check" class="icon"></i></span><h3>Skill</h3><p>固定“怎么做”。例如代码审查、生成页面、写文档、处理设计稿，都可以沉淀成可复用流程。</p></article>
+          <article class="glass-card extension-card js-reveal"><span class="icon-wrap"><i data-lucide="plug" class="icon"></i></span><h3>Plugin</h3><p>解决“怎么安装和分发能力”。它可以把 Skill、MCP、资源和配置打包成一个可安装能力包。</p></article>
+          <article class="glass-card extension-card js-reveal"><span class="icon-wrap"><i data-lucide="cable" class="icon"></i></span><h3>MCP</h3><p>解决“连接什么工具和数据”。数据库、浏览器、GitHub、文档系统，都可以通过接口接入。</p></article>
+          <article class="glass-card extension-card js-reveal"><span class="icon-wrap"><i data-lucide="workflow" class="icon"></i></span><h3>Hooks</h3><p>在关键生命周期前后做强制检查，例如命令前确认、提交前验证、危险操作前暂停。</p></article>
+          <article class="glass-card extension-card js-reveal"><span class="icon-wrap"><i data-lucide="calendar-clock" class="icon"></i></span><h3>Automations</h3><p>让 Codex 定期检查、提醒、复盘或继续处理任务，适合重复巡检和长期项目维护。</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="script" class="section-dark" data-section>
+      <div class="section-inner">
+        <p class="eyebrow">最后：把路线串起来</p>
+        <h2>从上手到实战，Codex 的学习路线可以这样走</h2>
+        <p class="lead">最后把整条路线收束成八步：先知道资料怎么读，再理解 Codex 的定位，准备账号、系统和项目目录；随后进入核心功能、标准工作流、任务模板和实战案例。听完这一页，观众应当能判断自己下一步从哪里开始。</p>
+        <div class="script-grid">
+          <article class="glass-card script-card js-reveal"><h3>0. 使用说明</h3><p>先交代资料性质、适合人群和阅读路线：快速上手、开发者核心路线、进阶扩展路线。</p></article>
+          <article class="glass-card script-card js-reveal"><h3>1. 先搞懂 Codex</h3><p>讲 Codex 基础认知、AI 编程四阶段、能做什么，以及和 ChatGPT、Cursor、Claude Code 的定位差异。</p></article>
+          <article class="glass-card script-card js-reveal"><h3>2. 安装与准备</h3><p>按账号、系统、工具、项目目录、权限安全来准备；先用练习目录，不直接上重要项目。</p></article>
+          <article class="glass-card script-card js-reveal"><h3>入口怎么选</h3><p>App 适合新手和演示；CLI 适合终端和 Git；IDE 适合局部开发；Web / Cloud 适合 GitHub 和团队任务。</p></article>
+          <article class="glass-card script-card js-reveal"><h3>3. 核心功能详解</h3><p>继续展开自动化、插件、Skill、MCP、代码管理、云端运行、记忆系统这些工程化能力。</p></article>
+          <article class="glass-card script-card js-reveal"><h3>4. 标准工作流</h3><p>需求拆解、制定计划、小步实现、测试、代码审查、提交与复盘；每一步都有失败原因和检查点。</p></article>
+          <article class="glass-card script-card js-reveal"><h3>任务模板库</h3><p>把读项目、修 bug、加功能、写测试、做 review、写 PR 这些场景做成可复用提示模板。</p></article>
+          <article class="glass-card script-card js-reveal"><h3>5. 实战案例库</h3><p>从前端页面、功能优化、管理后台，到 PPT 和宣传视频，让 Codex 从代码扩展到交付物。</p></article>
+        </div>
+        <div class="glass-card closing-card">
+          <p><strong>最终理解：</strong>橙皮书的核心路线是：先理解 Codex，再准备环境，再用标准工作流交付低风险任务，最后把重复方法沉淀成模板、规则和 Skill。</p>
+          <a class="button primary" href="#hero"><i data-lucide="rotate-ccw" class="icon"></i>重新演示</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script>
+    (function () {
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const progressBar = document.querySelector(".page-progress__bar");
+      const navLinks = Array.from(document.querySelectorAll(".nav-links a"));
+      const sections = Array.from(document.querySelectorAll("[data-section]"));
+      const reactive = Array.from(document.querySelectorAll(".js-reactive, .glass-card"));
+      const cursorHalo = document.querySelector(".js-cursor-halo");
+      const neuralCanvas = document.querySelector(".js-neural-canvas");
+
+      if (window.lucide) window.lucide.createIcons();
+
+      function initCursorHalo() {
+        if (!cursorHalo || reduceMotion) return;
+        window.addEventListener("pointermove", (event) => {
+          cursorHalo.style.left = event.clientX + "px";
+          cursorHalo.style.top = event.clientY + "px";
+          cursorHalo.style.opacity = ".95";
+        }, { passive: true });
+        window.addEventListener("pointerleave", () => {
+          cursorHalo.style.opacity = "0";
+        });
+      }
+
+      function initNeuralCanvas() {
+        if (!neuralCanvas || reduceMotion) return;
+        const ctx = neuralCanvas.getContext("2d");
+        if (!ctx) return;
+        let width = 0;
+        let height = 0;
+        let raf = 0;
+        const pointer = { x: 0, y: 0, active: false };
+        const nodes = [];
+        const resize = () => {
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          width = window.innerWidth;
+          height = window.innerHeight;
+          neuralCanvas.width = Math.floor(width * dpr);
+          neuralCanvas.height = Math.floor(height * dpr);
+          neuralCanvas.style.width = width + "px";
+          neuralCanvas.style.height = height + "px";
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          nodes.length = 0;
+          const count = Math.min(140, Math.max(58, Math.floor((width * height) / 15500)));
+          for (let i = 0; i < count; i += 1) {
+            nodes.push({
+              x: Math.random() * width,
+              y: Math.random() * height,
+              vx: (Math.random() - .5) * .28,
+              vy: (Math.random() - .5) * .28,
+              r: Math.random() * 1.7 + .55,
+              phase: Math.random() * Math.PI * 2
+            });
+          }
+        };
+        const draw = () => {
+          ctx.clearRect(0, 0, width, height);
+          ctx.globalCompositeOperation = "lighter";
+          for (const node of nodes) {
+            node.x += node.vx;
+            node.y += node.vy;
+            node.phase += .012;
+            if (node.x < -20) node.x = width + 20;
+            if (node.x > width + 20) node.x = -20;
+            if (node.y < -20) node.y = height + 20;
+            if (node.y > height + 20) node.y = -20;
+          }
+          for (let i = 0; i < nodes.length; i += 1) {
+            const a = nodes[i];
+            for (let j = i + 1; j < nodes.length; j += 1) {
+              const b = nodes[j];
+              const dx = a.x - b.x;
+              const dy = a.y - b.y;
+              const dist = Math.hypot(dx, dy);
+              if (dist < 118) {
+                const alpha = (1 - dist / 118) * .22;
+                ctx.strokeStyle = `rgba(88,166,255,${alpha})`;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(b.x, b.y);
+                ctx.stroke();
+              }
+            }
+            if (pointer.active) {
+              const dx = a.x - pointer.x;
+              const dy = a.y - pointer.y;
+              const dist = Math.hypot(dx, dy);
+              if (dist < 190) {
+                ctx.strokeStyle = `rgba(139,211,255,${(1 - dist / 190) * .32})`;
+                ctx.beginPath();
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(pointer.x, pointer.y);
+                ctx.stroke();
+              }
+            }
+          }
+          for (const node of nodes) {
+            const pulse = .55 + Math.sin(node.phase) * .3;
+            ctx.fillStyle = `rgba(139,211,255,${.22 + pulse * .34})`;
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, node.r + pulse * .8, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          raf = window.requestAnimationFrame(draw);
+        };
+        resize();
+        draw();
+        window.addEventListener("resize", resize, { passive: true });
+        window.addEventListener("pointermove", (event) => {
+          pointer.x = event.clientX;
+          pointer.y = event.clientY;
+          pointer.active = true;
+        }, { passive: true });
+        window.addEventListener("pointerleave", () => {
+          pointer.active = false;
+        });
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) window.cancelAnimationFrame(raf);
+          else draw();
+        });
+      }
+
+      initCursorHalo();
+      initNeuralCanvas();
+
+      reactive.forEach((el) => {
+        el.addEventListener("pointermove", (event) => {
+          const rect = el.getBoundingClientRect();
+          el.style.setProperty("--mx", (((event.clientX - rect.left) / rect.width) * 100).toFixed(2) + "%");
+          el.style.setProperty("--my", (((event.clientY - rect.top) / rect.height) * 100).toFixed(2) + "%");
+        }, { passive: true });
+      });
+
+      function updatePageProgress() {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const ratio = max > 0 ? window.scrollY / max : 0;
+        if (progressBar) progressBar.style.width = Math.max(0, Math.min(100, ratio * 100)) + "%";
+
+        let current = "";
+        for (const section of sections) {
+          const rect = section.getBoundingClientRect();
+          if (rect.top <= window.innerHeight * 0.36 && rect.bottom > window.innerHeight * 0.18) {
+            current = "#" + section.id;
+          }
+        }
+        navLinks.forEach((link) => link.classList.toggle("is-active", link.getAttribute("href") === current));
+      }
+
+      window.addEventListener("scroll", updatePageProgress, { passive: true });
+      window.addEventListener("resize", updatePageProgress);
+      updatePageProgress();
+
+      const workflowViewport = document.querySelector(".js-workflow-viewport");
+      const workflowProgress = document.querySelector(".js-workflow-progress");
+      const prev = document.querySelector(".js-workflow-prev");
+      const next = document.querySelector(".js-workflow-next");
+
+      function updateWorkflowProgress() {
+        if (!workflowViewport || !workflowProgress) return;
+        const max = workflowViewport.scrollWidth - workflowViewport.clientWidth;
+        const ratio = max > 0 ? workflowViewport.scrollLeft / max : 0;
+        workflowProgress.style.width = Math.max(0, Math.min(100, ratio * 100)) + "%";
+      }
+
+      if (workflowViewport) {
+        workflowViewport.addEventListener("mouseenter", () => workflowViewport.classList.add("is-active"));
+        workflowViewport.addEventListener("mouseleave", () => workflowViewport.classList.remove("is-active"));
+        workflowViewport.addEventListener("scroll", updateWorkflowProgress, { passive: true });
+        workflowViewport.addEventListener("wheel", (event) => {
+          if (window.innerWidth <= 760) return;
+          const max = workflowViewport.scrollWidth - workflowViewport.clientWidth;
+          if (max <= 0) return;
+          const delta = Math.abs(event.deltaY) >= Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
+          const atStart = workflowViewport.scrollLeft <= 1;
+          const atEnd = workflowViewport.scrollLeft >= max - 1;
+          if ((delta < 0 && atStart) || (delta > 0 && atEnd)) return;
+          event.preventDefault();
+          workflowViewport.scrollLeft += delta;
+        }, { passive: false });
+        updateWorkflowProgress();
+      }
+
+      function shiftWorkflow(direction) {
+        if (!workflowViewport) return;
+        const amount = Math.min(520, workflowViewport.clientWidth * 0.86);
+        workflowViewport.scrollBy({ left: direction * amount, behavior: "smooth" });
+      }
+
+      prev?.addEventListener("click", () => shiftWorkflow(-1));
+      next?.addEventListener("click", () => shiftWorkflow(1));
+
+      function refreshIcons() {
+        if (window.lucide) window.lucide.createIcons();
+      }
+
+      function escapeHTML(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;");
+      }
+
+      const consoleTabs = Array.from(document.querySelectorAll("[data-console-tab]"));
+      const consolePanes = Array.from(document.querySelectorAll("[data-console-pane]"));
+      const consoleTitle = document.querySelector(".js-console-title");
+      const consolePill = document.querySelector(".js-console-pill");
+      const consoleContent = {
+        project: {
+          title: "读懂一个陌生项目",
+          pill: "第一篇 / Codex 能做什么",
+          panes: [
+            { icon: "folder-search", title: "先读这些", lines: [["$ rg --files", "dim"], ["README / package.json / 配置文件", ""], ["入口文件 / 核心模块 / 路由", ""], ["测试命令、构建命令、不能随便动的文件", "warn"]] },
+            { icon: "map", title: "要回答的问题", lines: [["项目用什么技术栈？", ""], ["入口在哪里？核心模块在哪里？", ""], ["如何启动、测试、构建？", ""], ["哪些目录属于敏感区域？", "warn"]] },
+            { icon: "message-square-text", title: "推荐任务写法", lines: [["先阅读项目结构，不要修改代码。", ""], ["请说明技术栈、入口文件、测试命令。", ""], ["请标出高风险文件和暂时不要动的文件。", "warn"]] },
+            { icon: "clipboard-check", title: "验收结果", lines: [["能说清项目结构", "good"], ["能列出启动和验证命令", "good"], ["能指出风险边界", "good"], ["还没有开始改代码", "warn"]] }
+          ]
+        },
+        logic: {
+          title: "解释代码和梳理逻辑",
+          pill: "第一篇 / 解释代码和业务链路",
+          panes: [
+            { icon: "route", title: "解释范围", lines: [["函数做什么", ""], ["组件为什么这样写", ""], ["接口调用链路", ""], ["状态从哪里来、流向哪里", ""]] },
+            { icon: "git-branch", title: "上下文方式", lines: [["不是只解释一个函数", "warn"], ["要结合调用方、被调用方和相关配置", ""], ["旧项目接手时尤其有用", "good"]] },
+            { icon: "search-code", title: "排查 bug", lines: [["这个 bug 可能和哪些文件有关？", ""], ["先列怀疑点和证据", ""], ["再给最小修改方案", "warn"]] },
+            { icon: "list-checks", title: "输出形态", lines: [["模块关系图", "good"], ["数据流说明", "good"], ["潜在风险列表", "warn"], ["下一步验证建议", ""]] }
+          ]
+        },
+        bugfix: {
+          title: "修 bug 和加功能",
+          pill: "第一篇 / 边界清楚的小任务",
+          panes: [
+            { icon: "bug", title: "适合任务", lines: [["可复现 bug", ""], ["设置页、表单校验、导出按钮", ""], ["小接口、小组件、前端页面优化", ""], ["目标明确、范围可控", "good"]] },
+            { icon: "split", title: "拆小流程", lines: [["1. 先读项目", ""], ["2. 再出方案", ""], ["3. 只改一个模块", ""], ["4. 跑测试，看 diff，再继续", "warn"]] },
+            { icon: "ban", title: "不要这样用", lines: [["不要把整个大项目一次丢给它", "warn"], ["不要让它顺手大重构", "warn"], ["不要越过登录、支付、权限边界", "warn"]] },
+            { icon: "check-circle-2", title: "完成标准", lines: [["bug 复现路径明确", ""], ["修改范围小", "good"], ["验证命令跑过", "good"], ["diff 可审查", "good"]] }
+          ]
+        },
+        testing: {
+          title: "写测试、做重构",
+          pill: "第一篇 / 测试和重构必须加边界",
+          panes: [
+            { icon: "flask-conical", title: "可以让 Codex 做", lines: [["补单元测试", ""], ["补边界条件", ""], ["补异常场景", ""], ["提取重复逻辑、拆分过长函数", ""]] },
+            { icon: "lock-keyhole", title: "必须加的限制", lines: [["不改业务逻辑", "warn"], ["不改公共 API", "warn"], ["不引入无关依赖", "warn"], ["不大范围重构", "warn"]] },
+            { icon: "terminal", title: "验证命令", lines: [["$ npm test", ""], ["$ npm run lint", ""], ["$ npm run typecheck", ""], ["$ npm run build", ""]] },
+            { icon: "clipboard-check", title: "交付检查", lines: [["新增测试是否覆盖边界", "good"], ["重构前后行为是否一致", "good"], ["失败时能否回滚", "warn"]] }
+          ]
+        },
+        docs: {
+          title: "写文档和整理 PR",
+          pill: "第一篇 / 文档也是上下文基础设施",
+          panes: [
+            { icon: "file-text", title: "文档类型", lines: [["README / 安装说明 / 启动说明", ""], ["接口文档 / 环境变量说明", ""], ["项目结构说明 / 更新日志", ""]] },
+            { icon: "git-pull-request", title: "PR 输出", lines: [["为什么改", ""], ["改了什么", ""], ["如何验证", ""], ["风险和 review 重点", "warn"]] },
+            { icon: "alert-triangle", title: "硬规则", lines: [["不要编造不存在的命令", "warn"], ["不确定的信息要标注", "warn"], ["文档要能被下一个人和 AI 复用", "good"]] },
+            { icon: "book-open-check", title: "沉淀价值", lines: [["文档越清楚，后续接手越轻松", "good"], ["AGENTS.md 能保存项目规则", "good"], ["重复流程可以变成 Skill", "good"]] }
+          ]
+        },
+        review: {
+          title: "跑命令、看 diff、做 review",
+          pill: "第四篇 / 标准工作流的检查阶段",
+          panes: [
+            { icon: "terminal", title: "可执行命令", lines: [["运行测试、lint、typecheck、build", ""], ["查看 git status", ""], ["查看 git diff", ""], ["搜索代码、检查结果", ""]] },
+            { icon: "shield-alert", title: "需要审批", lines: [["联网", "warn"], ["生产环境", "warn"], ["数据库和真实用户数据", "warn"], ["删除、移动、大范围改动", "warn"]] },
+            { icon: "git-compare", title: "代码审查", lines: [["不只是看能不能跑", ""], ["还要看改得对不对、稳不稳、有无风险", "warn"], ["人负责最终判断", "good"]] },
+            { icon: "package-check", title: "交付结果", lines: [["改动说明", "good"], ["验证说明", "good"], ["风险提示", "warn"], ["可以进入 commit 或 PR", "good"]] }
+          ]
+        }
+      };
+
+      function renderConsole(key) {
+        const data = consoleContent[key] || consoleContent.project;
+        consoleTabs.forEach((tab) => tab.classList.toggle("is-active", tab.dataset.consoleTab === key));
+        if (consoleTitle) consoleTitle.textContent = data.title;
+        if (consolePill) consolePill.textContent = data.pill;
+        consolePanes.forEach((pane, index) => {
+          const item = data.panes[index] || data.panes[0];
+          const lines = item.lines.map(([text, tone]) => `<span class="terminal-line ${escapeHTML(tone)}">${escapeHTML(text)}</span>`).join("");
+          pane.innerHTML = `<div class="pane-title"><i data-lucide="${escapeHTML(item.icon)}" class="icon"></i>${escapeHTML(item.title)}</div>${lines}`;
+        });
+        refreshIcons();
+      }
+
+      consoleTabs.forEach((button) => {
+        button.addEventListener("click", () => renderConsole(button.dataset.consoleTab));
+      });
+      if (consoleTabs.length) renderConsole(consoleTabs.find((tab) => tab.classList.contains("is-active"))?.dataset.consoleTab || "project");
+
+      const videoTabs = Array.from(document.querySelectorAll(".video-tab"));
+      const demoTimeline = document.querySelector(".js-demo-timeline");
+      const generatedDemo = document.querySelector(".js-generated-demo");
+      const demoStatus = document.querySelector(".js-demo-status");
+      const demoTerminal = document.querySelector(".js-demo-terminal");
+      const demoDiff = document.querySelector(".js-demo-diff");
+      const demoCaption = document.querySelector(".js-demo-caption");
+      const demoSceneContent = {
+        field: {
+          status: "SCENE 01 / PROJECT INTAKE",
+          terminal: ["$ open codex app", "$ select practice repo", "$ read README / package", "context ready"],
+          diff: ["+ clear task boundary", "+ git baseline", "review required"],
+          caption: "先让 Codex 进入具体项目目录，读入口文件、配置和测试命令，再开始动手。"
+        },
+        code: {
+          status: "SCENE 02 / PLAN + EXECUTE",
+          terminal: ["$ rg --files", "$ inspect entry files", "$ npm run lint", "build passed"],
+          diff: ["+ focused change", "+ tests updated", "- vague outline"],
+          caption: "执行阶段不是一次性乱改，而是先计划、再小步修改、再运行验证命令。"
+        },
+        review: {
+          status: "SCENE 03 / DIFF REVIEW",
+          terminal: ["$ git status", "$ git diff", "$ npm run build", "ready for review"],
+          diff: ["+ changed files", "+ validation notes", "risk: human check"],
+          caption: "最后把改动、验证结果和风险说明拿出来，让人看 diff、做判断、决定是否接受。"
+        }
+      };
+      const timelineContent = {
+        field: [
+          { title: "选择练习项目", copy: "先从不重要的小项目开始，不直接操作核心项目；Codex 进入的是具体目录，不是抽象聊天。", detail: "重点：这一步对应橙皮书“项目目录准备”，核心是练习目录、Git 基线和低风险任务。" },
+          { title: "打开 App / 新建 thread", copy: "一个 thread 对应一个任务，不把所有需求塞进同一条长对话。", detail: "重点：App 里的项目列表不是聊天历史，thread 才是项目内的任务会话。" },
+          { title: "描述任务边界", copy: "说清目标、范围、限制和验收标准，让 Codex 先理解现场。", detail: "重点：边界越清楚，Codex 越不容易改到登录、支付、权限等敏感区域。" },
+          { title: "等待计划与执行", copy: "Codex 展示计划、读取文件、运行命令，过程本身要能被看见。", detail: "重点：不要只看最后总结，要观察它读了哪些文件、准备怎么改、准备跑什么命令。" },
+          { title: "进入 review pane", copy: "查看改动文件、绿色新增、红色删除，确认之后再接受。", detail: "重点：绿色代表新增，红色代表删除；确认 diff 是新手使用 Codex 的关键动作。" }
+        ],
+        code: [
+          { title: "先读项目", copy: "让 Codex 读取 README、目录结构、配置、入口文件和 AGENTS.md，先判断修改范围。", detail: "重点：这一步对应橙皮书“读懂一个陌生项目”，核心是技术栈、入口、核心模块、测试和构建命令。" },
+          { title: "制定计划", copy: "复杂任务先列计划，确认后再动手，避免一步改太多或方向跑偏。", detail: "重点：计划要包含文件范围、风险点、验证方式和需要人确认的问题。" },
+          { title: "小步实现", copy: "一次只改一小块；不顺手重构，不扩大任务范围。", detail: "重点：小步实现的目的不是慢，而是让 diff 可审查、错误可定位、失败可回滚。" },
+          { title: "运行检查", copy: "运行测试、lint、typecheck 或 build，前端还要看真实页面。", detail: "重点：Codex 的价值包括验证结果；能跑命令就跑命令，能截图就看截图。" },
+          { title: "整理变更", copy: "把改动整理成 diff、验证结果和风险说明，交给人继续审查。", detail: "重点：交付结果应该说明改了什么、怎么验证、还有哪些风险。" }
+        ],
+        review: [
+          { title: "测试不等于交付", copy: "测试通过后，还要检查代码改得对不对、稳不稳、有没有风险。", detail: "重点：橙皮书把代码审查列为独立步骤，因为“能跑”和“正确”不是一回事。" },
+          { title: "Codex 自审", copy: "先让 Codex 按文件、逻辑、边界、测试结果做一轮自审。", detail: "重点：自审要问它是否改了不该改的地方、是否有遗漏测试、是否存在副作用。" },
+          { title: "人工审查", copy: "人要看 diff、看敏感逻辑、看是否碰了不该碰的文件。", detail: "重点：责任最终在人；无法自行验收的任务，不适合让 Codex 独立完成。" },
+          { title: "提交与 PR", copy: "commit message 和 PR 描述要包含：为什么改、改了什么、怎么验证、风险是什么。", detail: "重点：PR 不是形式，PR 描述让团队和未来的 AI 都能理解上下文。" },
+          { title: "复盘沉淀", copy: "把反复出现的问题写进 AGENTS.md，把固定流程沉淀成 Skill。", detail: "重点：一次任务是执行，多次任务就要沉淀成规则、模板和 Skill。" }
+        ]
+      };
+      let activeTimelineKey = "field";
+
+      function renderTimeline(key, activeIndex = 0) {
+        if (!demoTimeline) return;
+        activeTimelineKey = key;
+        const data = timelineContent[key] || timelineContent.field;
+        demoTimeline.innerHTML = data.map((item, index) => {
+          const isActive = index === activeIndex;
+          const detail = isActive ? `<small>${escapeHTML(item.detail)}</small>` : "";
+          return `<button class="glass-card timeline-row js-reveal ${isActive ? "is-active" : ""}" type="button" data-step-index="${index}"><span>${index + 1}</span><div><h3>${escapeHTML(item.title)}</h3><p>${escapeHTML(item.copy)}</p>${detail}</div></button>`;
+        }).join("");
+      }
+
+      demoTimeline?.addEventListener("click", (event) => {
+        const row = event.target.closest("[data-step-index]");
+        if (!row) return;
+        renderTimeline(activeTimelineKey, Number(row.dataset.stepIndex || 0));
+      });
+
+      function renderDemoScene(key) {
+        const data = demoSceneContent[key] || demoSceneContent.field;
+        if (generatedDemo) generatedDemo.dataset.demoScene = key;
+        if (demoStatus) demoStatus.textContent = data.status;
+        if (demoTerminal) {
+          demoTerminal.innerHTML = `<strong>terminal</strong>${data.terminal.map((line, index) => `<span class="${index === data.terminal.length - 1 ? "good" : ""}">${escapeHTML(line)}</span>`).join("")}`;
+        }
+        if (demoDiff) {
+          demoDiff.innerHTML = `<strong>diff</strong>${data.diff.map((line) => {
+            const tone = line.startsWith("+") ? "plus" : line.startsWith("-") ? "minus" : "warn";
+            return `<span class="${tone}">${escapeHTML(line)}</span>`;
+          }).join("")}`;
+        }
+        if (demoCaption) demoCaption.textContent = data.caption;
+      }
+
+      videoTabs.forEach((button) => {
+        button.addEventListener("click", () => {
+          videoTabs.forEach((tab) => tab.classList.toggle("is-active", tab === button));
+          const key = button.dataset.videoTab || "field";
+          renderDemoScene(key);
+          renderTimeline(key, 0);
+          button.blur();
+        });
+      });
+      if (videoTabs.length) {
+        const initialDemoKey = videoTabs.find((tab) => tab.classList.contains("is-active"))?.dataset.videoTab || "field";
+        renderDemoScene(initialDemoKey);
+        renderTimeline(initialDemoKey);
+      }
+
+      const safetyTabs = Array.from(document.querySelectorAll("[data-safety-tab]"));
+      const safetyMap = document.querySelector(".js-safety-map");
+      const safetyDetail = document.querySelector(".js-safety-detail");
+      const safetyContent = {
+        scope: {
+          title: "目录和权限",
+          detail: "Codex 只进入指定项目目录；密钥、真实数据和项目外文件不进入任务范围。"
+        },
+        approval: {
+          title: "审批闸门",
+          detail: "联网、越界、删除、移动、安装依赖和改配置都先停下，说明原因后再由人确认。"
+        },
+        git: {
+          title: "Git 与 diff",
+          detail: "开始前保留干净基线；每次修改后看 git status 和 git diff，确认没有碰敏感逻辑。"
+        },
+        blocked: {
+          title: "禁止区域",
+          detail: "生产数据库、真实用户数据、支付核心、鉴权安全核心、大迁移、无备份项目和无法验收的任务都要排除。"
+        }
+      };
+
+      function renderSafety(key) {
+        const data = safetyContent[key] || safetyContent.scope;
+        if (safetyMap) safetyMap.dataset.safetyState = key;
+        safetyTabs.forEach((tab) => tab.classList.toggle("is-active", tab.dataset.safetyTab === key));
+        if (safetyDetail) safetyDetail.innerHTML = `<strong>${escapeHTML(data.title)}</strong><span>${escapeHTML(data.detail)}</span>`;
+      }
+
+      safetyTabs.forEach((button) => {
+        button.addEventListener("click", () => renderSafety(button.dataset.safetyTab));
+      });
+      if (safetyTabs.length) renderSafety(safetyTabs.find((tab) => tab.classList.contains("is-active"))?.dataset.safetyTab || "scope");
+
+      function initMotion() {
+        if (!window.gsap || !window.ScrollTrigger || reduceMotion || window.__codexMotionReady) return;
+        window.__codexMotionReady = true;
+
+        gsap.registerPlugin(ScrollTrigger);
+        gsap.defaults({ ease: "power2.out", duration: .75 });
+
+        gsap.from(".nav", { y: -18, autoAlpha: 0, duration: .7 });
+        gsap.from(".hero-copy > *", { y: 22, autoAlpha: 0, stagger: .08, duration: .8 });
+        gsap.from(".hero-stage", { y: 28, rotationX: 5, autoAlpha: 0, duration: .9, delay: .16 });
+        gsap.to(".command-orbit", { scale: 1.08, repeat: -1, yoyo: true, duration: 3.8, ease: "sine.inOut" });
+
+        ScrollTrigger.batch(".js-reveal", {
+          start: "top 82%",
+          onEnter: (items) => gsap.fromTo(items, { y: 28, autoAlpha: 0 }, { y: 0, autoAlpha: 1, stagger: .08, overwrite: true }),
+          once: true
+        });
+
+        window.addEventListener("load", () => ScrollTrigger.refresh());
+      }
+
+      initMotion();
+      window.addEventListener("load", () => {
+        refreshIcons();
+        initMotion();
+      });
+      window.setTimeout(initMotion, 1200);
+    })();
+  </script>
+</body>
+</html>
